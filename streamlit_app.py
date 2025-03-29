@@ -132,7 +132,7 @@ def process_output_for_formatting(output):
     
     return formatted_text
 
-if st.button("Complete Mission"):
+if st.button("Complete Level 1 Mission"):
     if user_confirmation:
         # Use Mistral for model inference
         client = Mistral(api_key=api_key)
