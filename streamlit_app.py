@@ -38,7 +38,7 @@ zip_code = st.text_input("Enter Your Zip Code:")
 user_info = {"city": city, "zip_code": zip_code}
 
 # Display a button and perform an action based on user input
-if st.button("Click to Accept Mission"):
+if st.button("Click to Accept Level 1: Trainee Mission"):
     st.write(f"You entered: {city}, {zip_code}. We'll provide personalized utilities informaion for your area.")
 
 # Read user_info to get city and zip_code
@@ -114,8 +114,8 @@ with st.expander("AI Prompt Preview"):
         st.code(prompt)
 
 # Generate comprehensive output using Hugging Face API
-st.subheader("Runbook Creation")
-st.write ("Click the button to generate your persoanlized Runbook")
+st.subheader("Complete Level 1: Trainee Mission")
+st.write ("Click the button to generate your persoanlized utlities contacts document")
 
 # Function to process the output for formatting (e.g., apply bold, italics, headings)
 def process_output_for_formatting(output):
@@ -132,7 +132,7 @@ def process_output_for_formatting(output):
     
     return formatted_text
 
-if st.button("Generate Runbook"):
+if st.button("Complete Mission"):
     if user_confirmation:
         # Use Mistral for model inference
         client = Mistral(api_key=api_key)
@@ -157,7 +157,7 @@ if st.button("Generate Runbook"):
             # If output is an object, extract its string representation
             output_text = str(output)  # You can also try accessing specific attributes if needed
         
-        st.success("Runbook generated successfully!")
+        st.success("Utilities contacts generated successfully! Mission Accomplished.")
         st.write(output_text)
 
         # Create a DOCX file from the output text
