@@ -28,16 +28,24 @@ st.markdown(
     ### Start your Training!
 """
 )
-# Display a button for the user to accept the mission
-if st.button("Accept Mission"):
-    st.write("You've accepted the mission! Let's get started. Please enter your city and zip code:")
-    city_zip = st.text_input("Enter Your City and Zip Code:")
-    st.write(f"Thank you for entering {city_zip}. We'll provide tailored emergency instructions for your area.")
+st.write("Let's gather some information. Please enter your details:")
 
-# If the user doesn't accept the mission, display a message
-else:
-    st.write("You haven't accepted the mission yet. Please click the button to begin your journey.")
+# Get user Input to enter input
+city = st.text_input("Enter Your City:")
+zip_code = st.text_input("Enter Your Zip Code:")
 
+# Save the user input for later use
+user_info = {"city": city, "zip_code": zip_code}
+
+# Display a button and perform an action based on user input
+if st.button("Click to Accept Mission"):
+    st.write(f"You entered: {city}, {zip_code}. We'll provide personalized utilities informaion for your area.")
+
+# Read user_info to get city and zip_code
+city = user_info["city"]
+zip_code = user_info["zip_code"]
+
+# Generate the AI prompt
 api_key = os.getenv("MISTRAL_TOKEN")
 
 if not api_key:
@@ -55,156 +63,49 @@ else:
 #env_vars = "\n".join([f"{key}: {value}" for key, value in os.environ.items()])
 #st.text(env_vars)
 
-# Section for date range selection
-st.subheader("Choose Date(s) or Timeframe")
-st.write ("Choose a Timeframe you would like a runbook generated for.")
-
-# Define the options
-options = ["Pick Dates", "Weekdays Only", "Weekend Only", "Default"]
-
-# Create a radio selection
-choice = st.radio("Choose an option:", options)
-
-if choice == "Pick Dates":
-    start_date = st.date_input("Select Start Date:", datetime.now())
-    end_date = st.date_input("Select End Date:", datetime.now() + timedelta(days=7))
-    st.write(f"You selected specific dates from {start_date} to {end_date}.")
-elif choice == "Weekdays Only":
-    st.write("You selected weekdays only.")
-elif choice == "Weekend Only":
-    st.write("You selected weekend only.")
-elif choice == "Default":
-    st.write("You selected a general schedule.")
-else:
-    st.write("Invalid choice.")
-
-# Generate AI prompt and get user confirmation
 with st.expander("AI Prompt Preview"):
-    user_confirmation = st.checkbox("Show AI Prompt")
-    if user_confirmation:
-        if choice == "Pick Dates":
-            prompt = f"""
-            Generate a comprehensive pet sitting runbook for the selected date range: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}.
+    if st.checkbox("Show AI Prompt"):
+        prompt = f"""
+            Generate a comprehensive list of utility providers, excluding cable and internet services, for the specified city and zip code, along with descriptions, names, contact numbers, addresses, and websites.
+            City: <city>, Zip Code: <zip_code>
             
-            User Inputs:
-            {uploaded_files}
-            
-            System Input(from PDF):
-            {system_info}
-            
-            Instructions:
-            - Create a detailed runbook tailored to the user's pets for the specified dates.
-            - Include sections for basic information, health, feeding, grooming, daily routine, and emergency contacts.
-            - Adapt the runbook based on the number and types of pets provided.
-            
-            Output Format:
-            - Use a clear structure with headings for each pet.
-            - Provide a schedule, feeding instructions, and individual care routines for the selected dates.
-            
-            Example User Input:
-            - Pet 1:
-              - Name: Fluffy
-              - Type: Cat
-              - ...
-            
-            Example System Input:
-            [System input content]
-            
-            Example Output:
-            [Provide an example runbook section for the selected dates here]
-            """
-        elif choice == "Weekdays Only":
-            prompt = f"""
-            Generate a comprehensive pet sitting runbook for weekdays only.
-            
-            User Inputs:
-            {uploaded_files}
-            
-            System Input(from PDF):
-            {system_info}
-            
-            Instructions:
-            - Create a detailed runbook tailored to the user's pets for weekdays.
-            - Include sections for basic information, health, feeding, grooming, and emergency contacts.
-            - Adapt the runbook based on the number and types of pets.
-            
-            Output Format:
-            - Use a clear structure with headings for each pet.
-            - Provide a weekly schedule, feeding instructions, and individual care routines for weekdays.
-            
-            Example User Input:
-            - Pet 1:
-              - Name: Fluffy
-              - Type: Cat
-              - ...
-            
-            Example System Input:
-            [System input content]
-            
-            Example Output:
-            [Provide an example runbook section for weekdays here]
-            """
-        elif choice == "Weekend Only":
-            prompt = f"""
-            Generate a comprehensive pet sitting runbook for the weekend only.
-            
-            User Inputs:
-            {uploaded_files}
-            
-            System Input(from PDF):
-            {system_info}
-            
-            Instructions:
-            - Create a detailed runbook tailored to the user's pets for the weekend.
-            - Include sections for basic information, health, feeding, grooming, and emergency contacts.
-            - Adapt the runbook based on the number and types of pets.
-            
-            Output Format:
-            - Use a clear structure with headings for each pet.
-            - Provide a schedule for the weekend, focusing on pet care tasks.
-            
-            Example User Input:
-            - Pet 1:
-              - Name: Fluffy
-              - Type: Cat
-              - ...
-            
-            Example System Input:
-            [System input content]
-            
-            Example Output:
-            [Provide an example runbook section for the weekend here]
-            """
-        else:
-            prompt = f"""
-            Generate a comprehensive pet sitting runbook based on the following user and system inputs:
-            
-            User Inputs:
-            {uploaded_files}
-            
-            System Input(from PDF):
-            {system_info}
-            
-            Instructions:
-            - Create a detailed runbook tailored to the user's pets.
-            - Include sections for basic information, health, feeding, grooming, daily routine, and emergency contacts.
-            - Adapt the runbook based on the number and types of pets provided.
-            
-            Output Format:
-            - Use a clear structure with headings for each pet.
-            - Provide a weekly schedule, feeding instructions, and individual care routines.
-            
-            Example User Input:
-            - Pet 1:
-              - Name: Fluffy
-              - Type: Cat
-              - ...
-            
-            Example System Input:
-            [System input content]
-            
-            Example Output:
-            [Provide an example runbook section here]
+            Electricity:
+
+            Provider Name: <electricity_provider_name>
+            Description: <electricity_provider_description>
+            Address: <electricity_provider_address>
+            Contact Number: <electricity_provider_phone>
+            Website: <electricity_provider_website>
+
+            Natural Gas:
+
+            Provider Name: <natural_gas_provider_name>
+            Description: <natural_gas_provider_description>
+            Address: <natural_gas_provider_address>
+            Contact Number: <natural_gas_provider_phone>
+            Website: <natural_gas_provider_website>
+            Water:
+
+            Provider Name: <water_provider_name>
+            Description: <water_provider_description>
+            Address: <water_provider_address>
+            Contact Number: <water_provider_phone>
+            Website: <water_provider_website>
+            Sewer:
+
+            Provider Name: <sewer_provider_name>
+            Description: <sewer_provider_description>
+            Address: <sewer_provider_address>
+            Contact Number: <sewer_provider_phone>
+            Website: <sewer_provider_website>
+            Garbage/Recycling:
+
+            Provider Name: <garbage_recycling_provider_name>
+            Description: <garbage_recycling_provider_description>
+            Address: <garbage_recycling_provider_address>
+            Contact Number: <garbage_recycling_provider_phone>
+            Website: <garbage_recycling_provider_website>
+            Please replace <city>, <zip_code>, and placeholders like <electricity_provider_name>, <electricity_provider_description>, etc., with the actual information for the specified city and zip code. This prompt will generate a detailed list of utility providers, excluding cable and internet services, along with the requested information.
             """
         st.code(prompt)
 
