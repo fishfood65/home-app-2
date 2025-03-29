@@ -26,6 +26,7 @@ st.markdown(
 st.markdown(
     """
     ### Start your Training!
+    #### Level 1: Trainee
 """
 )
 st.write("Let's gather some information. Please enter your details:")
@@ -63,7 +64,7 @@ else:
 #env_vars = "\n".join([f"{key}: {value}" for key, value in os.environ.items()])
 #st.text(env_vars)
 
-with st.expander("AI Prompt Preview"):
+with st.expander("Confirm AI Prompt Preview by Selecting the button inside"):
     user_confirmation = st.checkbox("Show AI Prompt")
     if user_confirmation:
         prompt = f"""
@@ -114,8 +115,7 @@ with st.expander("AI Prompt Preview"):
         st.code(prompt)
 
 # Generate comprehensive output using Hugging Face API
-st.subheader("Complete Level 1: Trainee Mission")
-st.write ("Click the button to generate your persoanlized utlities contacts document")
+st.write ("Next, Click the button to generate your persoanlized utlities contacts document")
 
 # Function to process the output for formatting (e.g., apply bold, italics, headings)
 def process_output_for_formatting(output):
@@ -184,3 +184,9 @@ if st.button("Complete Level 1 Mission"):
             )
     else:
         st.warning("Please confirm the AI prompt before generating the runbook.")
+
+st.markdown(
+    """
+    #### Level 2: Reservist
+"""
+)
