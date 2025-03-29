@@ -64,47 +64,51 @@ else:
 #st.text(env_vars)
 
 with st.expander("AI Prompt Preview"):
-    if st.checkbox("Show AI Prompt"):
+    user_confirmation = st.checkbox("Show AI Prompt")
+    if user_confirmation:
         prompt = f"""
             Generate a comprehensive list of utility providers, excluding cable and internet services, for the specified city and zip code, along with descriptions, names, contact numbers, addresses, and websites.
-            City: <city>, Zip Code: <zip_code>
+            City: {city}, Zip Code: {zip_code}
             
             Electricity:
 
-            Provider Name: <electricity_provider_name>
-            Description: <electricity_provider_description>
-            Address: <electricity_provider_address>
-            Contact Number: <electricity_provider_phone>
-            Website: <electricity_provider_website>
+            - Provider Name: <electricity_provider_name>
+            - Description: <electricity_provider_description>
+            - Address: <electricity_provider_address>
+            - Contact Number: <electricity_provider_phone>
+            - Website: <electricity_provider_website>
 
             Natural Gas:
 
-            Provider Name: <natural_gas_provider_name>
-            Description: <natural_gas_provider_description>
-            Address: <natural_gas_provider_address>
-            Contact Number: <natural_gas_provider_phone>
-            Website: <natural_gas_provider_website>
+            - Provider Name: <natural_gas_provider_name>
+            - Description: <natural_gas_provider_description>
+            - Address: <natural_gas_provider_address>
+            - Contact Number: <natural_gas_provider_phone>
+            - Website: <natural_gas_provider_website>
+            
             Water:
-
-            Provider Name: <water_provider_name>
-            Description: <water_provider_description>
-            Address: <water_provider_address>
-            Contact Number: <water_provider_phone>
-            Website: <water_provider_website>
+            - Provider Name: <water_provider_name>
+            - Description: <water_provider_description>
+            - Address: <water_provider_address>
+            - Contact Number: <water_provider_phone>
+            - Website: <water_provider_website>
+            
             Sewer:
 
-            Provider Name: <sewer_provider_name>
-            Description: <sewer_provider_description>
-            Address: <sewer_provider_address>
-            Contact Number: <sewer_provider_phone>
-            Website: <sewer_provider_website>
+            - Provider Name: <sewer_provider_name>
+            - Description: <sewer_provider_description>
+            - Address: <sewer_provider_address>
+            - Contact Number: <sewer_provider_phone>
+            - Website: <sewer_provider_website>
+            
             Garbage/Recycling:
 
-            Provider Name: <garbage_recycling_provider_name>
-            Description: <garbage_recycling_provider_description>
-            Address: <garbage_recycling_provider_address>
-            Contact Number: <garbage_recycling_provider_phone>
-            Website: <garbage_recycling_provider_website>
+            - Provider Name: <garbage_recycling_provider_name>
+            - Description: <garbage_recycling_provider_description>
+            - Address: <garbage_recycling_provider_address>
+            - Contact Number: <garbage_recycling_provider_phone>
+            - Website: <garbage_recycling_provider_website>
+            
             Please replace <city>, <zip_code>, and placeholders like <electricity_provider_name>, <electricity_provider_description>, etc., with the actual information for the specified city and zip code. This prompt will generate a detailed list of utility providers, excluding cable and internet services, along with the requested information.
             """
         st.code(prompt)
@@ -158,7 +162,7 @@ if st.button("Generate Runbook"):
 
         # Create a DOCX file from the output text
         doc = Document()
-        doc.add_heading('Pet Sitting Runbook', 0)
+        doc.add_heading('Home Utilities Contact Info', 0)
         
         # Process and add formatted output to the document
         # Example: preserve line breaks and formatting in output
@@ -167,7 +171,7 @@ if st.button("Generate Runbook"):
     
 
         # Save DOCX to a temporary file
-        doc_filename = "runbook.docx"
+        doc_filename = "home_utilities_contacts.docx"
         doc.save(doc_filename)
 
         # Provide a download button for the DOCX file
