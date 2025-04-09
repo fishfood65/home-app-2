@@ -34,17 +34,19 @@ st.write("Let's gather some information. Please enter your details:")
 # Get user Input to enter input
 city = st.text_input("Enter Your City:")
 zip_code = st.text_input("Enter Your Zip Code:")
+internet_provider = st.text_input("Enter Your Internet Provider Name:")
 
 # Save the user input for later use
-user_info = {"city": city, "zip_code": zip_code}
+user_info = {"city": city, "zip_code": zip_code, "internet_provider":internet_provider}
 
 # Display a button and perform an action based on user input
 if st.button("Click to Accept Level 1: Trainee Mission"):
-    st.write(f"You entered: {city}, {zip_code}. We'll provide personalized utilities informaion for your area.")
+    st.write(f"You entered: {city}, {zip_code}, {internet_provider}. We'll provide personalized utilities informaion for your area.")
 
 # Read user_info to get city and zip_code
 city = user_info["city"]
 zip_code = user_info["zip_code"]
+internet_provider = user_info["internet_provider"]
 
 # Generate the AI prompt
 api_key = os.getenv("MISTRAL_TOKEN")
@@ -68,15 +70,15 @@ with st.expander("Confirm AI Prompt Preview by Selecting the button inside"):
     user_confirmation = st.checkbox("Show AI Prompt")
     if user_confirmation:
         prompt = f"""
-            Generate a comprehensive list of utility providers, excluding cable and internet services, for the specified city and zip code, along with descriptions, names, contact numbers, addresses, and websites.
-            City: {city}, Zip Code: {zip_code}
+            Create an emergency run book with the Electricity, Natural Gas, Water, Sewer, Garbage, Recycling, Internet Provider for the specified city, zip code and Internet Provider, along with descriptions, names, customer service numbers, addresses, and websites.
+            City: {city}, Zip Code: {zip_code}, Internet Provider: {internet_provider}
             
             Electricity:
 
             - Provider Name: <electricity_provider_name>
             - Description: <electricity_provider_description>
             - Address: <electricity_provider_address>
-            - Contact Number: <electricity_provider_phone>
+            - Customer Service Number: <electricity_provider_phone>
             - Website: <electricity_provider_website>
 
             Natural Gas:
@@ -84,14 +86,14 @@ with st.expander("Confirm AI Prompt Preview by Selecting the button inside"):
             - Provider Name: <natural_gas_provider_name>
             - Description: <natural_gas_provider_description>
             - Address: <natural_gas_provider_address>
-            - Contact Number: <natural_gas_provider_phone>
+            - Customer Service Number: <natural_gas_provider_phone>
             - Website: <natural_gas_provider_website>
             
             Water:
             - Provider Name: <water_provider_name>
             - Description: <water_provider_description>
             - Address: <water_provider_address>
-            - Contact Number: <water_provider_phone>
+            - Customer Service Number: <water_provider_phone>
             - Website: <water_provider_website>
             
             Sewer:
@@ -99,7 +101,7 @@ with st.expander("Confirm AI Prompt Preview by Selecting the button inside"):
             - Provider Name: <sewer_provider_name>
             - Description: <sewer_provider_description>
             - Address: <sewer_provider_address>
-            - Contact Number: <sewer_provider_phone>
+            - Customer Service Number: <sewer_provider_phone>
             - Website: <sewer_provider_website>
             
             Garbage/Recycling:
@@ -107,15 +109,23 @@ with st.expander("Confirm AI Prompt Preview by Selecting the button inside"):
             - Provider Name: <garbage_recycling_provider_name>
             - Description: <garbage_recycling_provider_description>
             - Address: <garbage_recycling_provider_address>
-            - Contact Number: <garbage_recycling_provider_phone>
+            - CCustomer Service: <garbage_recycling_provider_phone>
             - Website: <garbage_recycling_provider_website>
+
+            Internet:
+
+            - Provider Name: <internet_provider_name>
+            - Description: <internet_provider_description>
+            - Address: <internet_provider_address>
+            - Customer Service: <internet_provider_phone>
+            - Website: <internet_provider_website>
             
-            Please replace <city>, <zip_code>, and placeholders like <electricity_provider_name>, <electricity_provider_description>, etc., with the actual information for the specified city and zip code. This prompt will generate a detailed list of utility providers, excluding cable and internet services, along with the requested information.
+            Please replace <city>, <zip_code>, <internet_provider> and placeholders like <electricity_provider_name>, <electricity_provider_description>, etc., with the actual information for the specified city and zip code. This prompt will generate a detailed list of utility providers, along with the requested information.
             """
         st.code(prompt)
 
 # Generate comprehensive output using Hugging Face API
-st.write ("Next, Click the button to generate your persoanlized utlities contacts document")
+st.write ("Next, Click the button to generate your persoanlized utlities emergency run book document")
 
 # Function to process the output for formatting (e.g., apply bold, italics, headings)
 def process_output_for_formatting(output):
@@ -157,12 +167,12 @@ if st.button("Complete Level 1 Mission"):
             # If output is an object, extract its string representation
             output_text = str(output)  # You can also try accessing specific attributes if needed
         
-        st.success("Utilities contacts generated successfully! Mission Accomplished.")
+        st.success("Emergency utilities run book generated successfully! Mission Accomplished.")
         st.write(output_text)
 
         # Create a DOCX file from the output text
         doc = Document()
-        doc.add_heading('Home Utilities Contact Info', 0)
+        doc.add_heading('Home Utilities Emergency Runbook', 0)
         
         # Process and add formatted output to the document
         # Example: preserve line breaks and formatting in output
@@ -171,7 +181,7 @@ if st.button("Complete Level 1 Mission"):
     
 
         # Save DOCX to a temporary file
-        doc_filename = "home_utilities_contacts.docx"
+        doc_filename = "home_utilities_emergency.docx"
         doc.save(doc_filename)
 
         # Provide a download button for the DOCX file
@@ -184,23 +194,3 @@ if st.button("Complete Level 1 Mission"):
             )
     else:
         st.warning("Please confirm the AI prompt before generating the runbook.")
-
-st.markdown(
-    """
-    #### Level 2: Reservist
-"""
-)
-# Get user Input to enter input
-city = st.text_input("Enter Your City:")
-zip_code = st.text_input("Enter Your Zip Code:")
-
-# Save the user input for later use
-user_info = {"city": city, "zip_code": zip_code}
-
-# Display a button and perform an action based on user input
-if st.button("Click to Accept Level 1: Trainee Mission"):
-    st.write(f"You entered: {city}, {zip_code}. We'll provide personalized utilities informaion for your area.")
-
-# Read user_info to get city and zip_code
-city = user_info["city"]
-zip_code = user_info["zip_code"]
