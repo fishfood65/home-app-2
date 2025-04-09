@@ -70,7 +70,7 @@ with st.expander("Confirm AI Prompt Preview by Selecting the button inside"):
     user_confirmation = st.checkbox("Show AI Prompt")
     if user_confirmation:
         prompt = f"""
-            Create an emergency run book with the Electricity, Natural Gas, Water, Sewer, Garbage, Recycling, Internet Provider for the specified city, zip code and Internet Provider, along with descriptions, names, customer service numbers, addresses, and websites.
+            Create an emergency run book with the Electricity, Natural Gas, Water, Sewer, Garbage, Recycling, Internet Provider for the specified city, zip code and Internet Provider, along with descriptions, names, customer service numbers, addresses, and websites. search the web and return the City: {city} services residential waste management collection companies
             City: {city}, Zip Code: {zip_code}, Internet Provider: {internet_provider}
             
             Electricity:
