@@ -5,6 +5,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from docx import Document
 import re
+import time
 
 st.set_page_config(
     page_title="Hello",
@@ -47,6 +48,32 @@ if st.button("Click to Accept Level 1: Trainee Mission"):
 city = user_info["city"]
 zip_code = user_info["zip_code"]
 internet_provider = user_info["internet_provider"]
+
+def start_timer():
+    st.session_state.started = True
+    while st.session_state.started and st.session_state.time_left > 0:
+        st.session_state.time_left -= 1
+        st.write(f"Time left: {st.session_state.time_left} seconds")
+        time.sleep(1)
+        st.experimental_rerun()
+    st.write("Timer is up!")
+    st.markdown(
+        '<i class="fas fa-bell"></i>',
+        unsafe_allow_html=True,
+        help='<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">'
+    )
+
+if "started" not in st.session_state:
+    st.session_state.started = False
+
+if "time_left" not in st.session_state:
+    st.session_state.time_left = 60
+
+if not st.session_state.started:
+    if st.button("Start Timer"):
+        start_timer()
+else:
+    st.write("Timer is running...")
 
 # Generate the AI prompt
 api_key = os.getenv("MISTRAL_TOKEN")
