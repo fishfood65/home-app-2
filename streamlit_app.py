@@ -99,10 +99,6 @@ with st.expander("Confirm AI Prompt Preview by Selecting the button inside"):
         - Emergency contact information for internet outages
         - Step-by-step guide on what to do during an internet outage
 
-        5. **Residential Waste Management Collection Companies ({city}):**
-        - Provide information on the waste management services available in {city}, including contact details and websites for relevant companies.
-        - Include a brief guide on what to do if your waste management collection is missed.
-
         Ensure the run book is well-structured, easy to understand, and includes relevant links to official websites and resources. Format the response in a clear, step-by-step manner, with headings and bullet points for easy navigation.
             
             Please replace <city>, <zip_code>, <internet_provider> and placeholders like <electricity_provider_name>, etc., with the actual information for the specified city and zip code. 
