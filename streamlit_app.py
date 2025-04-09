@@ -70,57 +70,42 @@ with st.expander("Confirm AI Prompt Preview by Selecting the button inside"):
     user_confirmation = st.checkbox("Show AI Prompt")
     if user_confirmation:
         prompt = f"""
-            Create an emergency run book with the Electricity, Natural Gas, Water, Sewer, Garbage, Recycling, Internet Provider for the specified city, zip code and Internet Provider, along with descriptions, names, customer service numbers, addresses, and websites. search the web and return the City: {city} services residential waste management collection companies
-            City: {city}, Zip Code: {zip_code}, Internet Provider: {internet_provider}
+        Compose a comprehensive, step-by-step emergency run book for residents of City:{city} Zip Code:{zip_code} with Internet Provider:{internet_provider}, with a focus on guiding users through power outages, gas leaks, water leaks/outages, and internet service disruptions. Include the following details for each utility and service provider:
+        1. **Electricity (<electricity_provider_name>):**
+         - Description of the company and services
+         - Customer service number and address
+         - Official website
+        - Emergency contact information for power outages and gas leaks
+        - Step-by-step guide on what to do during a power outage, including when and how to report it
+
+        2. **Natural Gas (<natural_gas_provider_name>):**
+        - Description of the company and services
+        - Customer service number and address
+        - Official website
+        - Emergency contact information for gas-related issues
+        - Step-by-step guide on what to do if you suspect a gas leak
+
+        3. **Water (<water_provider_name>):**
+        - Description of the company and services
+        - Customer service number and address
+        - Official website
+        - Emergency contact information for water outages and leaks
+        - Step-by-step guide on what to do during a water outage or leak
+
+        4. **Internet (<internet_provider_name>):**
+        - Description of the company and services
+        - Customer service number and address
+        - Official website
+        - Emergency contact information for internet outages
+        - Step-by-step guide on what to do during an internet outage
+
+        5. **Residential Waste Management Collection Companies ({city}):**
+        - Provide information on the waste management services available in {city}, including contact details and websites for relevant companies.
+        - Include a brief guide on what to do if your waste management collection is missed.
+
+        Ensure the run book is well-structured, easy to understand, and includes relevant links to official websites and resources. Format the response in a clear, step-by-step manner, with headings and bullet points for easy navigation.
             
-            Electricity:
-
-            - Provider Name: <electricity_provider_name>
-            - Description: <electricity_provider_description>
-            - Address: <electricity_provider_address>
-            - Customer Service Number: <electricity_provider_phone>
-            - Website: <electricity_provider_website>
-
-            Natural Gas:
-
-            - Provider Name: <natural_gas_provider_name>
-            - Description: <natural_gas_provider_description>
-            - Address: <natural_gas_provider_address>
-            - Customer Service Number: <natural_gas_provider_phone>
-            - Website: <natural_gas_provider_website>
-            
-            Water:
-            - Provider Name: <water_provider_name>
-            - Description: <water_provider_description>
-            - Address: <water_provider_address>
-            - Customer Service Number: <water_provider_phone>
-            - Website: <water_provider_website>
-            
-            Sewer:
-
-            - Provider Name: <sewer_provider_name>
-            - Description: <sewer_provider_description>
-            - Address: <sewer_provider_address>
-            - Customer Service Number: <sewer_provider_phone>
-            - Website: <sewer_provider_website>
-            
-            Garbage/Recycling:
-
-            - Provider Name: <garbage_recycling_provider_name>
-            - Description: <garbage_recycling_provider_description>
-            - Address: <garbage_recycling_provider_address>
-            - CCustomer Service: <garbage_recycling_provider_phone>
-            - Website: <garbage_recycling_provider_website>
-
-            Internet:
-
-            - Provider Name: <internet_provider_name>
-            - Description: <internet_provider_description>
-            - Address: <internet_provider_address>
-            - Customer Service: <internet_provider_phone>
-            - Website: <internet_provider_website>
-            
-            Please replace <city>, <zip_code>, <internet_provider> and placeholders like <electricity_provider_name>, <electricity_provider_description>, etc., with the actual information for the specified city and zip code. This prompt will generate a detailed list of utility providers, along with the requested information.
+            Please replace <city>, <zip_code>, <internet_provider> and placeholders like <electricity_provider_name>, etc., with the actual information for the specified city and zip code. 
             """
         st.code(prompt)
 
