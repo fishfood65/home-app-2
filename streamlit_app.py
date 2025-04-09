@@ -139,7 +139,7 @@ if st.button("Complete Level 1 Mission"):
         
         # Define the prompt as a "chat" message format
         completion = client.chat.complete(
-            model="open-mistral-nemo",  # Specify the model ID
+            model="mistral-small-latest",  # Specify the model ID
             messages=[  # Pass a message format similar to a conversation
                 {"role": "user", "content": prompt}
             ],
@@ -190,3 +190,17 @@ st.markdown(
     #### Level 2: Reservist
 """
 )
+# Get user Input to enter input
+city = st.text_input("Enter Your City:")
+zip_code = st.text_input("Enter Your Zip Code:")
+
+# Save the user input for later use
+user_info = {"city": city, "zip_code": zip_code}
+
+# Display a button and perform an action based on user input
+if st.button("Click to Accept Level 1: Trainee Mission"):
+    st.write(f"You entered: {city}, {zip_code}. We'll provide personalized utilities informaion for your area.")
+
+# Read user_info to get city and zip_code
+city = user_info["city"]
+zip_code = user_info["zip_code"]
