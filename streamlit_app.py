@@ -219,6 +219,184 @@ def mail_trash_handling():
     mail ()
     trash_handling()
 
+    with st.expander("Confirm Level 2 AI Prompt Preview by Selecting the button inside"):
+        user_confirmation = st.checkbox("Show Level 2 AI Prompt")
+        if user_confirmation:
+            prompt = f"""
+            You are a helpful assistant creating an **Emergency Manual** for a household located in a city: {st.session_state.home_info.get("City", "Unknown City")} and Zip Code: {st.session_state.home_info.get("Zip Code", "00000")}.  This manual is for residents or house sitters to use during emergencies, with clear, calm, and step-by-step guidance.
+
+            The home has the following setup:
+            - **Internet Provider**: {st.session_state.home_info.get("Internet Provider Name", "N/A")}
+            - **Mailbox Location**: {st.session_state.mail_info.get("Mailbox Location", "N/A")}
+            - **Mailbox Key Instructions**: {st.session_state.mail_info.get("Mailbox Key", "N/A")}
+            - **Mail Pickup Schedule**: {st.session_state.mail_info.get("Pick-Up Schedule", "N/A")}
+            - **What to Do with Mail**: {st.session_state.mail_info.get("What to Do with the Mail", "N/A")}
+            - **What to Do with Packages**: {st.session_state.mail_info.get("Packages", "N/A")}
+
+            **Trash Handling Setup**:
+            - Kitchen Bin: {st.session_state.trash_info.get("Kitchen Trash Bin Location", "N/A")}
+            - Bathroom Bin: {st.session_state.trash_info.get("Bathroom Trash Bin Location", "N/A")}
+            - Trash Bags: {st.session_state.trash_info.get("Trash Bag Type & Storage", "N/A")}
+            - Emptying Schedule: {st.session_state.trash_info.get("Emptying Schedule", "N/A")}
+            - Replacement Instructions: {st.session_state.trash_info.get("Replacing Trash Bags", "N/A")}
+            - Trash Bin Destination: {st.session_state.trash_info.get("Where to Empty Trash Bins", "N/A")}
+            - Bin Description: {st.session_state.trash_info.get("Outdoor Bin Description", "N/A")}
+            - Outdoor Bin Location Instructions: {st.session_state.trash_info.get("Outdoor Bin Location Instructions", "N/A")}
+            - Garbage Pickup Day/Time: {st.session_state.trash_info.get("Garbage Pickup Day", "N/A")} / {st.session_state.trash_info.get("Garbage Pickup Time", "N/A")}
+            - Recycling Pickup Day/Time: {st.session_state.trash_info.get("Recycling Pickup Day", "N/A")} / {st.session_state.trash_info.get("Recycling Pickup Time", "N/A")}
+            - Bin Placement Instructions: {st.session_state.trash_info.get("Outdoor Bin Pickup/Return Instructions", "N/A")}
+            - Composting Used: {st.session_state.trash_info.get("Composting Used", "No")}
+            - Compost Instructions: {st.session_state.trash_info.get("Compost Instructions", "N/A")}
+            - Common Disposal Area: {st.session_state.trash_info.get("Uses Common Disposal Area", "No")}
+            - Common Area Instructions: {st.session_state.trash_info.get("Common Disposal Instructions", "N/A")}
+
+            **Waste Management Company Contact**:
+            - Name: {st.session_state.trash_info.get("Waste Management Contact Name", "N/A")}
+            - Phone: {st.session_state.trash_info.get("Waste Management Contact Phone", "N/A")}
+            - When to Call: {st.session_state.trash_info.get("Waste Management Contact Description", "N/A")}
+
+            Now, generate a **step-by-step emergency manual** for the following situations:
+
+            ---
+
+            ### ⚡ ** Power Outages (<electricity_provider_name>):**
+            - Description of the company and services
+            - Customer service number and address
+            - Official website
+            - What to check
+            - What to unplug
+            - Where flashlights or backup supplies might be located
+
+            ---
+
+            ### 🔥 ** Gas Leaks(<natural_gas_provider_name>):**
+            - Warning signs
+            - Immediate actions to take (e.g., evacuate, don’t use electrical switches)
+            - How to shut off the gas (include a general step if specific not available)
+            - Emergency contact for local gas company or 911
+
+            ---
+
+            ### 💧 ** Water Leaks & Outages(<water_provider_name>):**
+            - Description of the company and services
+            - Customer service number and address
+            - Official website
+            - Emergency contact information for water outages and leaks
+            - Step-by-step guide on what to do during a water outage or leak 
+            - Common leak points to check
+            - Shut-off valve location (include placeholder if not supplied)
+            - Water company emergency line (Insert `<water_provider_name>` placeholder)
+
+            ---
+
+            ### 🌐 Internet Disruptions
+            - How to reboot router/modem
+            - What to check first (e.g., cables, outage site)
+            - Internet provider: {st.session_state.home_info.get("Internet Provider Name", "N/A")}
+            - Description of the company and services
+            - Customer service number and address
+            - Official website
+            - Emergency contact information for internet outages
+            - Step-by-step guide on what to do during an internet outage
+
+            ---
+
+            ### 📬 Mail Handling
+            - Mailbox location & key access
+            - Pickup schedule
+            - What to do with mail and packages if resident is away
+
+            ---
+
+            ### 🗑️ Garbage Disposal
+            - Indoor trash process
+            - Outdoor bin instructions and schedule
+            - Recycling and composting notes
+            - What to do in case of missed pickup
+            - Waste Management Contact Info
+
+            ---
+
+            ### 📎 Format
+            Organize the manual using **headings and bullet points**. Keep instructions **clear, calm, and easy to follow** for someone unfamiliar with the home.
+
+             Please replace placeholders like <electricity_provider_name>, etc., with the actual information for the specified city and zip code. 
+
+            Please begin the emergency manual now.
+            """
+            st.code(prompt)
+
+    # Generate comprehensive output using Mistral API
+    st.write ("Next, Click the button to generate your personalized emergency run book document")
+
+    # Function to process the output for formatting (e.g., apply bold, italics, headings)
+    def process_output_for_formatting(output):
+        # Example processing: bold headings or text wrapped in markdown-style asterisks
+        formatted_text = ""
+        # Replace markdown-like headings (e.g., ## Heading) with docx headings
+        formatted_text = re.sub(r"^## (.*)", r"\n\n\1\n", output)
+        
+        # Replace markdown-like bold (e.g., **bold**)
+        formatted_text = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", formatted_text)
+        
+        # Replace markdown-like italics (e.g., *italic*)
+        formatted_text = re.sub(r"\*(.*?)\*", r"<i>\1</i>", formatted_text)
+    
+        return formatted_text
+
+    if st.button("Complete Level 2 Mission"):
+        if user_confirmation:
+            # Use Mistral for model inference
+            client = Mistral(api_key=api_key)
+            
+            # Define the prompt as a "chat" message format
+            completion = client.chat.complete(
+                model="mistral-small-latest",  # Specify the model ID
+                messages=[  # Pass a message format similar to a conversation
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=1500,  # Set the max tokens
+                temperature=0.5,  # Control the randomness of the output
+            )
+            
+            # Access the content from the 'AssistantMessage' object using the .content attribute
+            output = completion.choices[0].message.content # Access the generated message
+            
+            # Convert `output` to string if it's not already a string
+            if isinstance(output, str):
+                output_text = output
+            else:
+                # If output is an object, extract its string representation
+                output_text = str(output)  # You can also try accessing specific attributes if needed
+            
+            st.success("Emergency run book generated successfully! Mission Accomplished.")
+            st.write(output_text)
+
+            # Create a DOCX file from the output text
+            doc = Document()
+            doc.add_heading('Home Emergency Runbook', 0)
+            
+            # Process and add formatted output to the document
+            # Example: preserve line breaks and formatting in output
+            formatted_output = process_output_for_formatting(output)
+            doc.add_paragraph(formatted_output)
+        
+
+            # Save DOCX to a temporary file
+            doc_filename = "home_emergency.docx"
+            doc.save(doc_filename)
+
+            # Provide a download button for the DOCX file
+            with open(doc_filename, "rb") as doc_file:
+                st.download_button(
+                    label="Download Runbook as DOCX",
+                    data=doc_file,
+                    file_name=doc_filename,
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
+        else:
+            st.warning("Please confirm the AI prompt before generating the runbook.")
+
 def mail():
     st.write("Mail Handling Instructions")
 
@@ -286,10 +464,6 @@ def mail():
                 st.write(f"{key}: {value}")
     else:
         st.write("No user information saved yet.")
-
-import streamlit as st
-from PIL import Image
-import io
 
 def trash_handling():
     st.markdown("## 🗑️ Trash Disposal Instructions")
