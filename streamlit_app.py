@@ -27,9 +27,10 @@ st.markdown(
 st.markdown(
     """
     ### Start your Training!
-    #### Level 1: Trainee
 """
 )
+st.subheader("Level 1: Trainee")
+
 st.write("Let's gather some information. Please enter your details:")
 
 # Get user Input to enter input
