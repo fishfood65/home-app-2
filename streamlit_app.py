@@ -214,29 +214,54 @@ def mail():
         st.session_state.user_info = {}
 
     with st.expander("Mail Handling", expanded=True):
-        mailbox_location = st.text_input("Mailbox Location", key="mailbox_location")
-        st.progress(20)  # Progress bar for Mailbox Location
+        mailbox_location = st.text_area(
+            "Mailbox Location",
+            key="mailbox_location",
+            placeholder="The mailbox is located [describe location clearly — e.g., \"at the end of the driveway on the left side\" or \"in the lobby, box #204\""
+        )
+        if mailbox_location:
+            st.progress(20)  # Progress bar for Mailbox Location
 
-        mailbox_key = st.text_input("Mailbox Key (Optional)", key="mailbox_key")
-        st.progress(40)  # Progress bar for Mailbox Key
+        mailbox_key = st.text_area(
+            "Mailbox Key (Optional)",
+            key="mailbox_key",
+            placeholder="The key is located [e.g., “on the key hook next to the fridge,” or “inside the top drawer in the entryway table”]. It’s labeled Mailbox for easy identification."
+        )
+        if mailbox_key:
+            st.progress(40)  # Progress bar for Mailbox Key
 
-        pick_up_schedule = st.text_input("Pick-Up Schedule", key="pick_up_schedule")
-        st.progress(60)  # Progress bar for Pick-Up Schedule
+        pick_up_schedule = st.text_area(
+            "Mail Pick-Up Schedule",
+            key="pick_up_schedule",
+            placeholder="Please check the mail [e.g., “daily,” “every other day,” or “on Mondays and Thursdays”]. If it looks like there's a lot of mail piling up, feel free to pick it up more often."
+        )
+        if pick_up_schedule:
+            st.progress(60)  # Progress bar for Pick-Up Schedule
 
-        what_to_do_with_mail = st.text_input("What to Do with the Mail", key="what_to_do_with_mail")
-        st.progress(80)  # Progress bar for What to Do with the Mail
+        what_to_do_with_mail = st.text_area(
+            "What to do with the Mail",
+            key="what_to_do_with_mail",
+            placeholder="Place all mail in the designated spot: [e.g., “the tray on the kitchen counter,” or “the mail basket by the front door”].  If you notice anything urgent (like official notices or something from a bank), feel free to text me a photo just in case."
+        )
+        if what_to_do_with_mail:
+            st.progress(80)  # Progress bar for What to Do with the Mail
 
-        packages = st.text_input("Packages", key="packages")
-        st.progress(100)  # Progress bar for Packages
+        What_to_do_with_packages = st.text_area(
+            "Packages",
+            key="packages",
+            placeholder="If a package arrives and it doesn't fit in the mailbox: Check by the front door, porch, or behind the side gate (sometimes deliveries are left there).  Bring it inside and place it [e.g., “on the dining table” or “inside the entryway closet”]"
+        )
+        if What_to_do_with_packages:
+            st.progress(100)  # Progress bar for Packages
 
         # Save user input into user_info
-        if st.button("Save"):
+        if st.button("Mail Handling 100% Complete. Click to Save"):
             st.session_state.user_info = {
                 "Mailbox Location": mailbox_location,
                 "Mailbox Key": mailbox_key,
                 "Pick-Up Schedule": pick_up_schedule,
                 "What to Do with the Mail": what_to_do_with_mail,
-                "Packages": packages
+                "Packages": What_to_do_with_packages
             }
             st.success("User information saved successfully!")
 
@@ -248,6 +273,6 @@ def mail():
     else:
         st.write("No user information saved yet.")
 
-if __name__ == "__mail__":
+if __name__ == "__main__":
     mail()
 
