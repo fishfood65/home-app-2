@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 from docx import Document
 import re
 import time
+from PIL import Image
+import io
 
 st.set_page_config(
     page_title="Hello",
@@ -206,6 +208,12 @@ if st.button("Complete Level 1 Mission"):
 
 st.subheader("Level 2: Mail Handling and Trash Disposal")
 
+# Main entry point of the app
+def main():
+    # Call the trash_handling function
+    mail()
+    trash_handling()
+
 def mail():
     st.write("Mail Handling Instructions")
 
@@ -266,7 +274,7 @@ def mail():
             st.success("User information saved successfully!")
 
     # Display the saved user information
-    st.subheader("Saved User Information")
+    st.write("Saved Mail Handing Information")
     if st.session_state.user_info:
         with st.expander("Saved User Information", expanded=True):
             for key, value in st.session_state.user_info.items():
@@ -274,6 +282,223 @@ def mail():
     else:
         st.write("No user information saved yet.")
 
-if __name__ == "__main__":
-    mail()
+def trash_handling():
+    st.markdown("Trash Disposal Instructions")
 
+    # Initialize session state
+    if 'trash_info' not in st.session_state:
+        st.session_state.trash_info = {}
+    if 'trash_images' not in st.session_state:
+        st.session_state.trash_images = {}
+
+    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    times = ["Morning", "Afternoon", "Evening"]
+
+    with st.expander("Trash Disposal", expanded=True):
+        # Indoor Trash Info
+        st.markdown("##### Kitchen and Bathroom Trash Details")
+        kitchen_bin_location = st.text_area(
+            "Kitchen Trash Bin Location", 
+            key="kitchen_bin_location",
+            placeholder="Describe where the kitchen trash bin is located. For example, 'Under the kitchen sink' or 'Next to the fridge.'"
+            )
+        bathroom_bin_location = st.text_area(
+            "Bathroom Trash Bin Location", 
+            key="bathroom_bin_location",
+            placeholder="Describe where the bathroom trash bin is located. For example, 'Near the toilet' or 'Under the bathroom counter.'"
+            )
+        trash_bag_type = st.text_area(
+            "Trash Bag Type & Location", 
+            key="trash_bag_type",
+            placeholder="Please describe the type of trash bags used and where they are stored. For example, 'Black trash bags stored in the pantry.'"
+            )
+        emptying_schedule = st.text_area(
+            "Emptying Schedule", 
+            key="emptying_schedule",
+            placeholder="Indicate how often the trash should be emptied. For example, 'Empty every night' or 'Once a week on Tuesdays.'"
+            )
+        replacement_instructions = st.text_area(
+            "Replacing Trash Bags", 
+            key="replacement_instructions",
+            placeholder="Instructions for replacing trash bags. For example, 'Replace bag when full and tie the bag securely.'"
+            )
+
+        # Outdoor bin info
+        st.markdown("##### Outdoor Bin Handling Details")
+        bin_destination = st.text_area(
+            "Where to Empty the Trash Bins", 
+            key="bin_destination",
+            placeholder="Describe where to empty the outdoor trash bins. For example, 'By the curb on pickup day' or 'Behind the garage.'"
+            )
+        bin_description = st.text_area(
+            "What the Outdoor Trash Bins Look Like", 
+            key="bin_description",
+            placeholder="Describe the appearance of the outdoor trash bins. For example, 'Green with a lid, marked with a recycling symbol.'"
+            )
+        bin_location_specifics = st.text_area(
+            "Specific Location or Instructions for Outdoor Bins", 
+            key="bin_location_specifics",
+            placeholder="Provide any additional details or specific locations for the outdoor bins. For example, 'Next to the side gate.'"
+            )
+
+        # Handle image upload or display for outdoor bin
+        def handle_image(label, display_name):
+            uploaded = None
+            image_key = f"{label} Image"
+            if label not in st.session_state.trash_images:
+                st.session_state.trash_images[label] = None
+
+            if st.session_state.trash_images[label]:
+                st.image(Image.open(io.BytesIO(st.session_state.trash_images[label])), caption=display_name)
+                if st.button(f"Delete {display_name}", key=f"delete_{label}"):
+                    st.session_state.trash_images[label] = None
+                    st.experimental_rerun()
+            else:
+                uploaded = st.file_uploader(
+                    f"Upload a photo of the {display_name}", 
+                    type=["jpg", "jpeg", "png"], 
+                    key=f"{label}_upload",
+                    help="Upload a clear imapge of the specified trash bin or area")
+                if uploaded:
+                    st.session_state.trash_images[label] = uploaded.read()
+                    st.success(f"{display_name} image uploaded.")
+                    st.experimental_rerun()
+
+        handle_image("Outdoor Bin", "Outdoor Trash Bin")
+        handle_image("Recycling Bin", "Recycling Bin")
+
+        # Collection schedule
+        st.markdown("##### Collection Schedule")
+        trash_day = st.selectbox(
+            "Garbage Pickup Day", 
+            days, 
+            key="trash_day",
+            help="Select the day of the week for garbage pickup."
+            )
+        trash_time = st.selectbox(
+            "Garbage Pickup Time", 
+            times, 
+            key="trash_time",
+            help="Select the day of the week for garbage pickup." 
+            )
+        recycling_day = st.selectbox(
+            "Recycling Pickup Day", 
+            days, 
+            key="recycling_day",
+            help="Select the time of day for garbage pickup (Morning, Afternoon, or Evening)."
+            )
+        recycling_time = st.selectbox(
+            "Recycling Pickup Time", 
+            times, 
+            key="recycling_time",
+            help="Select the day of the week for recycling pickup."
+            )
+
+        bin_handling_instructions = st.text_area("Instructions for Placing and Returning Outdoor Bins", key="bin_handling_instructions")
+
+        # Common disposal area
+        st.markdown("##### Common Disposal Area")
+        uses_common_disposal = st.checkbox(
+            "Is there a common disposal area?", 
+            key="uses_common_disposal",
+            help= "Check this box if there is a common disposal area where trash and recycling should be placed."
+            )
+        common_area_instructions = ""
+        if uses_common_disposal:
+            common_area_instructions = st.text_area(
+                "Instructions for Common Disposal Area", 
+                key="common_area_instructions",
+                placeholder= "Describe how to use the common disposal area. For example, 'Place trash bags in the designated dumpster in the alley.'"
+                )
+            handle_image("Common Area", "Common Disposal Area")
+
+        # Compost
+        compost_applicable = st.checkbox(
+            "Is composting used?", 
+            key="compost_applicable",
+            help="Check this box if composting is used at this location."
+            )
+        compost_instructions = ""
+        if compost_applicable:
+            compost_instructions = st.text_area(
+                "Compost Instructions", 
+                key="compost_instructions",
+                placeholder="Describe how to handle compost. For example, 'Place all organic waste in the compost bin on the left side of the yard.'"
+                )
+
+        # Waste Management Contact Info
+        st.markdown("##### Waste Management Company Contact Information")
+        wm_name = st.text_input(
+            "Waste Management Contact Company", 
+            key="wm_name",
+            placeholder="Enter the name of waste management company"
+            )
+        wm_phone = st.text_input(
+            "Waste Management Contact Phone", 
+            key="wm_phone",
+            placeholder="Enter the contact phone number for waste management."
+            )
+        wm_description = st.text_area(
+            "When to call Waste Management Company", 
+            key="wm_description",
+            placeholder= "Provide brief instrucitons for contacting the waste management company (e.g., 'For billing inquiries' or 'To report missed pickup') and information needed to provide the company when contacting them." 
+            )
+
+        # Save
+        if st.button("Trash Handling 100% Complete. Click to Save"):
+            # Save text data
+            st.session_state.trash_info = {
+                "Kitchen Trash Bin Location": kitchen_bin_location,
+                "Bathroom Trash Bin Location": bathroom_bin_location,
+                "Trash Bag Type & Storage": trash_bag_type,
+                "Emptying Schedule": emptying_schedule,
+                "Replacing Trash Bags": replacement_instructions,
+                "Where to Empty Trash Bins": bin_destination,
+                "Outdoor Bin Description": bin_description,
+                "Outdoor Bin Location Instructions": bin_location_specifics,
+                "Garbage Pickup Day": trash_day,
+                "Garbage Pickup Time": trash_time,
+                "Recycling Pickup Day": recycling_day,
+                "Recycling Pickup Time": recycling_time,
+                "Outdoor Bin Pickup/Return Instructions": bin_handling_instructions,
+                "Composting Used": "Yes" if compost_applicable else "No",
+                "Compost Instructions": compost_instructions if compost_applicable else "N/A",
+                "Uses Common Disposal Area": "Yes" if uses_common_disposal else "No",
+                "Common Disposal Instructions": common_area_instructions if uses_common_disposal else "N/A",
+                "Waste Management Contact Name": wm_name,
+                "Waste Management Contact Phone": wm_phone,
+                "Waste Management Contact Description": wm_description
+            }
+
+            # Save images in session state
+            st.session_state.trash_images = {}  # Reset
+
+            def store_image(file, label):
+                if file is not None:
+                    image_bytes = file.read()
+                    st.session_state.trash_images[label] = image_bytes
+                    st.success(f"{label} image saved.")
+                else:
+                    st.session_state.trash_images[label] = None
+
+            store_image(outdoor_bin_photo, "Outdoor Bin Photo")
+            store_image(recycling_bin_photo, "Recycling Bin Photo")
+            if uses_common_disposal:
+                store_image(common_area_photo, "Common Disposal Area Photo")
+
+            st.success("All trash handling instructions and images saved successfully!")
+
+    # Display saved info and images
+    st.markdown("##### Saved Trash Handling Information")
+    if st.session_state.trash_info:
+        for key, value in st.session_state.trash_info.items():
+            st.write(f"**{key}**: {value}")
+
+    st.markdown("##### Uploaded Photos")
+    for label, image_bytes in st.session_state.trash_images.items():
+        if image_bytes:
+            st.image(Image.open(io.BytesIO(image_bytes)), caption=label)
+
+# Run the app if this script is executed
+if __name__ == "__main__":
+    main()
