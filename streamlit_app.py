@@ -412,42 +412,67 @@ def trash_handling():
         handle_image("Recycling Bin", "Recycling Bin")
 
         # Collection schedule
-        st.markdown("##### Collection Schedule")
+    with st.expander("Collection Schedule", expanded=True):
+        st.markdown("##### Enter your trash and recycling schedule")
+
+        progress = 0
+        increment = 25
+        bar3 = st.progress(progress)
+
         trash_day = st.selectbox(
             "Garbage Pickup Day", 
             days, 
             key="trash_day",
             help="Select the day of the week for garbage pickup."
             )
+        if trash_day:
+            progress += increment
+            bar3.progress(progress)
+
         trash_time = st.selectbox(
             "Garbage Pickup Time", 
             times, 
             key="trash_time",
             help="Select the day of the week for garbage pickup." 
             )
+        if trash_time:
+            progress += increment
+            bar3.progress(progress)
+
         recycling_day = st.selectbox(
             "Recycling Pickup Day", 
             days, 
             key="recycling_day",
             help="Select the time of day for garbage pickup (Morning, Afternoon, or Evening)."
             )
+        if recycling_day:
+            progress += increment
+            bar3.progress(progress)
+
         recycling_time = st.selectbox(
             "Recycling Pickup Time", 
             times, 
             key="recycling_time",
             help="Select the day of the week for recycling pickup."
             )
+        if recycling_time:
+            progress += increment
+            bar3.progress(progress)
 
         bin_handling_instructions = st.text_area("Instructions for Placing and Returning Outdoor Bins", key="bin_handling_instructions")
 
         # Common disposal area
-        st.markdown("##### Common Disposal Area")
+    with st.expander("Common Disposal Area (if applicable)", expanded=True):
+        st.markdown("##### Shared disposal area details")
         uses_common_disposal = st.checkbox(
             "Is there a common disposal area?", 
             key="uses_common_disposal",
             help= "Check this box if there is a common disposal area where trash and recycling should be placed."
             )
         common_area_instructions = ""
+        progress = 0
+        bar4 = st.progress(progress)
+
         if uses_common_disposal:
             common_area_instructions = st.text_area(
                 "Instructions for Common Disposal Area", 
@@ -455,38 +480,64 @@ def trash_handling():
                 placeholder= "Describe how to use the common disposal area. For example, 'Place trash bags in the designated dumpster in the alley.'"
                 )
             handle_image("Common Area", "Common Disposal Area")
-
+            if common_area_instructions:
+                progress += 100
+                bar4.progress(progress)
         # Compost
+    with st.expander("Composting Instructions (if applicable)", expanded=True):
+        st.markdown("##### Composting info")
         compost_applicable = st.checkbox(
             "Is composting used?", 
             key="compost_applicable",
             help="Check this box if composting is used at this location."
             )
         compost_instructions = ""
+        progress = 0
+        bar5 = st.progress(progress)
         if compost_applicable:
             compost_instructions = st.text_area(
                 "Compost Instructions", 
                 key="compost_instructions",
                 placeholder="Describe how to handle compost. For example, 'Place all organic waste in the compost bin on the left side of the yard.'"
                 )
+            if compost_instructions:
+                progress += 100
+                bar5 = st.progress(progress)
 
         # Waste Management Contact Info
-        st.markdown("##### Waste Management Company Contact Information")
+    with st.expander("Waste Management Contact Info", expanded=True):
+        st.markdown("##### Company contact details")
+
+        progress = 0
+        increment = 33
+        bar6 = st.progress(progress)
+
         wm_name = st.text_input(
             "Waste Management Contact Company", 
             key="wm_name",
             placeholder="Enter the name of waste management company"
             )
+        if wm_name:
+            progress += increment
+            bar6.progress(progress)
+
         wm_phone = st.text_input(
             "Waste Management Contact Phone", 
             key="wm_phone",
             placeholder="Enter the contact phone number for waste management."
             )
+        if wm_phone:
+            progress += increment
+            bar6.progress(progress)
+
         wm_description = st.text_area(
             "When to call Waste Management Company", 
             key="wm_description",
             placeholder= "Provide brief instrucitons for contacting the waste management company (e.g., 'For billing inquiries' or 'To report missed pickup') and information needed to provide the company when contacting them." 
             )
+        if wm_description:
+            progress += increment
+            bar6.progress(progress)
 
         # Save
         if st.button("Trash Handling 100% Complete. Click to Save"):
