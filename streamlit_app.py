@@ -427,31 +427,31 @@ def trash_handling():
         wm_description = st.text_area("When to Contact", placeholder="E.g. Missed pickup or billing issues")
         if wm_description: progress += increment; bar6.progress(progress)
 
-        # --- Save Button ---
-        if st.button("✅ Trash Handling 100% Complete. Click to Save"):
-            st.session_state.trash_info = {
-                "Kitchen Trash Bin Location": kitchen_bin_location,
-                "Bathroom Trash Bin Location": bathroom_bin_location,
-                "Trash Bag Type & Storage": trash_bag_type,
-                "Emptying Schedule": emptying_schedule,
-                "Replacing Trash Bags": replacement_instructions,
-                "Where to Empty Trash Bins": bin_destination,
-                "Outdoor Bin Description": bin_description,
-                "Outdoor Bin Location Instructions": bin_location_specifics,
-                "Garbage Pickup Day": trash_day,
-                "Garbage Pickup Time": trash_time,
-                "Recycling Pickup Day": recycling_day,
-                "Recycling Pickup Time": recycling_time,
-                "Outdoor Bin Pickup/Return Instructions": bin_handling_instructions,
-                "Composting Used": "Yes" if compost_applicable else "No",
-                "Compost Instructions": compost_instructions if compost_applicable else "N/A",
-                "Uses Common Disposal Area": "Yes" if uses_common_disposal else "No",
-                "Common Disposal Instructions": common_area_instructions if uses_common_disposal else "N/A",
-                "Waste Management Contact Name": wm_name,
-                "Waste Management Contact Phone": wm_phone,
-                "Waste Management Contact Description": wm_description
+    # --- Save Button ---
+    if st.button("✅ Trash Handling 100% Complete. Click to Save"):
+        st.session_state.trash_info = {
+            "Kitchen Trash Bin Location": kitchen_bin_location,
+            "Bathroom Trash Bin Location": bathroom_bin_location,
+            "Trash Bag Type & Storage": trash_bag_type,
+            "Emptying Schedule": emptying_schedule,
+            "Replacing Trash Bags": replacement_instructions,
+            "Where to Empty Trash Bins": bin_destination,
+            "Outdoor Bin Description": bin_description,
+            "Outdoor Bin Location Instructions": bin_location_specifics,
+            "Garbage Pickup Day": trash_day,
+            "Garbage Pickup Time": trash_time,
+            "Recycling Pickup Day": recycling_day,
+            "Recycling Pickup Time": recycling_time,
+            "Outdoor Bin Pickup/Return Instructions": bin_handling_instructions,
+            "Composting Used": "Yes" if compost_applicable else "No",
+            "Compost Instructions": compost_instructions if compost_applicable else "N/A",
+            "Uses Common Disposal Area": "Yes" if uses_common_disposal else "No",
+            "Common Disposal Instructions": common_area_instructions if uses_common_disposal else "N/A",
+            "Waste Management Contact Name": wm_name,
+            "Waste Management Contact Phone": wm_phone,
+            "Waste Management Contact Description": wm_description
             }
-            st.success("All trash handling instructions saved successfully!")
+        st.success("All trash handling instructions saved successfully!")
 
     # --- Display saved info and uploaded images ---
     if st.session_state.trash_info:
@@ -460,7 +460,7 @@ def trash_handling():
             st.write(f"**{key}**: {value}")
 
     if st.session_state.trash_images:
-        st.markdown("### 🖼️ Uploaded Photos")
+        st.write("🖼️ Uploaded Photos")
         for label, image_bytes in st.session_state.trash_images.items():
             if image_bytes:
                 st.image(Image.open(io.BytesIO(image_bytes)), caption=label)
