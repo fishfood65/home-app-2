@@ -132,7 +132,7 @@ with st.expander("Confirm AI Prompt Preview by Selecting the button inside"):
             """
         st.code(prompt)
 
-# Generate comprehensive output using Hugging Face API
+# Generate comprehensive output using Mistral API
 st.write ("Next, Click the button to generate your persoanlized utlities emergency run book document")
 
 # Function to process the output for formatting (e.g., apply bold, italics, headings)
