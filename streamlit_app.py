@@ -203,3 +203,51 @@ if st.button("Complete Level 1 Mission"):
             )
     else:
         st.warning("Please confirm the AI prompt before generating the runbook.")
+
+st.subheader("Level 2: Mail Handling and Trash Disposal")
+
+def mail():
+    st.write("Mail Handling Instructions")
+
+    # Initialize user_info in session state
+    if 'user_info' not in st.session_state:
+        st.session_state.user_info = {}
+
+    with st.expander("Mail Handling", expanded=True):
+        mailbox_location = st.text_input("Mailbox Location", key="mailbox_location")
+        st.progress(20)  # Progress bar for Mailbox Location
+
+        mailbox_key = st.text_input("Mailbox Key (Optional)", key="mailbox_key")
+        st.progress(40)  # Progress bar for Mailbox Key
+
+        pick_up_schedule = st.text_input("Pick-Up Schedule", key="pick_up_schedule")
+        st.progress(60)  # Progress bar for Pick-Up Schedule
+
+        what_to_do_with_mail = st.text_input("What to Do with the Mail", key="what_to_do_with_mail")
+        st.progress(80)  # Progress bar for What to Do with the Mail
+
+        packages = st.text_input("Packages", key="packages")
+        st.progress(100)  # Progress bar for Packages
+
+        # Save user input into user_info
+        if st.button("Save"):
+            st.session_state.user_info = {
+                "Mailbox Location": mailbox_location,
+                "Mailbox Key": mailbox_key,
+                "Pick-Up Schedule": pick_up_schedule,
+                "What to Do with the Mail": what_to_do_with_mail,
+                "Packages": packages
+            }
+            st.success("User information saved successfully!")
+
+    # Display the saved user information
+    st.subheader("Saved User Information")
+    if st.session_state.user_info:
+        for key, value in st.session_state.user_info.items():
+            st.write(f"{key}: {value}")
+    else:
+        st.write("No user information saved yet.")
+
+if __name__ == "__mail__":
+    mail()
+
