@@ -294,52 +294,96 @@ def trash_handling():
     days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     times = ["Morning", "Afternoon", "Evening"]
 
-    with st.expander("Trash Disposal", expanded=True):
+    with st.expander("Kitchen and Bath Trash Details", expanded=True):
         # Indoor Trash Info
-        st.markdown("##### Kitchen and Bathroom Trash Details")
+        st.markdown("##### Fill in the kitchen and bathroom trash info")
+
+        progress = 0
+        increment = 20
+        bar1 = st.progress(progress)
+
         kitchen_bin_location = st.text_area(
             "Kitchen Trash Bin Location", 
             key="kitchen_bin_location",
             placeholder="Describe where the kitchen trash bin is located. For example, 'Under the kitchen sink' or 'Next to the fridge.'"
             )
+        if kitchen_bin_location:
+            progress += increment
+            bar1.progress(progress)
+        
         bathroom_bin_location = st.text_area(
             "Bathroom Trash Bin Location", 
             key="bathroom_bin_location",
             placeholder="Describe where the bathroom trash bin is located. For example, 'Near the toilet' or 'Under the bathroom counter.'"
             )
+        if bathroom_bin_location:
+            progress += increment
+            bar1.progress(progress)
+
         trash_bag_type = st.text_area(
             "Trash Bag Type & Location", 
             key="trash_bag_type",
             placeholder="Please describe the type of trash bags used and where they are stored. For example, 'Black trash bags stored in the pantry.'"
             )
+        if trash_bag_type:
+            progress += increment
+            bar1.progress(progress)
+
         emptying_schedule = st.text_area(
             "Emptying Schedule", 
             key="emptying_schedule",
             placeholder="Indicate how often the trash should be emptied. For example, 'Empty every night' or 'Once a week on Tuesdays.'"
             )
+        if emptying_schedule:
+            progress += increment
+            bar1.progress(progress)
+
         replacement_instructions = st.text_area(
             "Replacing Trash Bags", 
             key="replacement_instructions",
             placeholder="Instructions for replacing trash bags. For example, 'Replace bag when full and tie the bag securely.'"
             )
+        if replacement_instructions:
+            progress += increment
+            bar1.progress(progress)
 
         # Outdoor bin info
+    with st.expander("Outdoor Bin Details", expanded=True):
         st.markdown("##### Outdoor Bin Handling Details")
+
+        progress = 0
+        increment = 33
+        bar2 = st.progress(progress)
+       
         bin_destination = st.text_area(
             "Where to Empty the Trash Bins", 
             key="bin_destination",
             placeholder="Describe where to empty the outdoor trash bins. For example, 'By the curb on pickup day' or 'Behind the garage.'"
             )
+        
+        if bin_destination:
+            progress += increment
+            bar2.progress(progress)
+
         bin_description = st.text_area(
             "What the Outdoor Trash Bins Look Like", 
             key="bin_description",
             placeholder="Describe the appearance of the outdoor trash bins. For example, 'Green with a lid, marked with a recycling symbol.'"
             )
+        
+        if bin_description:
+            progress += increment
+            bar2.progress(progress)
+
         bin_location_specifics = st.text_area(
             "Specific Location or Instructions for Outdoor Bins", 
             key="bin_location_specifics",
             placeholder="Provide any additional details or specific locations for the outdoor bins. For example, 'Next to the side gate.'"
             )
+        
+        if bin_location_specifics:
+            progress += increment
+            bar2.progress(progress)
 
         # Handle image upload or display for outdoor bin
         def handle_image(label, display_name):
