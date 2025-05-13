@@ -14,30 +14,26 @@ st.set_page_config(
     page_icon="👋",
 )
 
-# Main entry point of the app
-def main():
-   # call functions
-    home()
-    mail()
-    trash_handling()
-
 st.write("# Welcome to Home Hero Academy! 👋")
-
 st.sidebar.success("Select a demo above.")
-
-
 st.markdown(
     """
     ### Your Mission
     Accept a series of challenges testing your knowledge about your home to empower you and your deputies to become a heroic guardian for your home and its precious contents
-"""
-)
-
+    """
+    )
 st.markdown(
     """
     ### Start your Training!
-"""
-)
+    """
+    )
+# Main entry point of the app
+def main():
+ # call functions
+    home()
+    mail()
+    trash_handling()
+
 st.subheader("Level 1: Trainee")
 
 #st.write("Let's gather some information. Please enter your details:")
@@ -55,21 +51,21 @@ def home():
     internet_provider = st.text_input("Enter Your Internet Provider Name:")
 
 # Save user input into home_info
-if st.button(" Click to Save"):
+    if st.button(" Click to Save"):
         st.session_state.home_info = {
-            "Enter Your City": city,
-            "Enter Your Zip Code": zip_code,
-            "Enter Your Internet Provider Name": internet_provider,
+            "City": city,
+            "Zip Code": zip_code,
+            "Internet Provider Name": internet_provider,
             }
         st.success("User information saved successfully!")
 
     # Display the saved user information
-st.write("Saved Basic Home Information")
-if st.session_state.home_info:
+        st.write("Saved Basic Home Information")
+    if st.session_state.home_info:
         with st.expander("Saved User Information", expanded=True):
             for key, value in st.session_state.home_info.items():
                 st.write(f"{key}: {value}")
-else:
+    else:
         st.write("No user information saved yet.")
 # Save the user input for later use
 #user_info = {"city": city, "zip_code": zip_code, "internet_provider":internet_provider}
