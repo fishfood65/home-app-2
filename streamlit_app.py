@@ -268,8 +268,9 @@ def mail():
     # Display the saved user information
     st.subheader("Saved User Information")
     if st.session_state.user_info:
-        for key, value in st.session_state.user_info.items():
-            st.write(f"{key}: {value}")
+        with st.expander("Saved User Information", expanded=True):
+            for key, value in st.session_state.user_info.items():
+                st.write(f"{key}: {value}")
     else:
         st.write("No user information saved yet.")
 
