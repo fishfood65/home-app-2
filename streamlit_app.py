@@ -14,6 +14,13 @@ st.set_page_config(
     page_icon="👋",
 )
 
+# Main entry point of the app
+def main():
+   # call functions
+    home()
+    mail()
+    trash_handling()
+
 st.write("# Welcome to Home Hero Academy! 👋")
 
 st.sidebar.success("Select a demo above.")
@@ -33,50 +40,48 @@ st.markdown(
 )
 st.subheader("Level 1: Trainee")
 
-st.write("Let's gather some information. Please enter your details:")
+#st.write("Let's gather some information. Please enter your details:")
+
+def home():
+    st.write("Let's gather some information. Please enter your details:")
+
+# Initialize home_info in session state
+    if 'home_info' not in st.session_state:
+        st.session_state.home_info = {}
 
 # Get user Input to enter input
-city = st.text_input("Enter Your City:")
-zip_code = st.text_input("Enter Your Zip Code:")
-internet_provider = st.text_input("Enter Your Internet Provider Name:")
+    city = st.text_input("Enter Your City:")
+    zip_code = st.text_input("Enter Your Zip Code:")
+    internet_provider = st.text_input("Enter Your Internet Provider Name:")
 
+# Save user input into home_info
+if st.button(" Click to Save"):
+        st.session_state.home_info = {
+            "Enter Your City": city,
+            "Enter Your Zip Code": zip_code,
+            "Enter Your Internet Provider Name": internet_provider,
+            }
+        st.success("User information saved successfully!")
+
+    # Display the saved user information
+st.write("Saved Basic Home Information")
+if st.session_state.home_info:
+        with st.expander("Saved User Information", expanded=True):
+            for key, value in st.session_state.home_info.items():
+                st.write(f"{key}: {value}")
+else:
+        st.write("No user information saved yet.")
 # Save the user input for later use
-user_info = {"city": city, "zip_code": zip_code, "internet_provider":internet_provider}
+#user_info = {"city": city, "zip_code": zip_code, "internet_provider":internet_provider}
 
 # Display a button and perform an action based on user input
-if st.button("Click to Accept Level 1: Trainee Mission"):
-    st.write(f"You entered: {city}, {zip_code}, {internet_provider}. We'll provide personalized utilities informaion for your area.")
+#if st.button("Click to Accept Level 1: Trainee Mission"):
+ #   st.write(f"You entered: {city}, {zip_code}, {internet_provider}. We'll provide personalized utilities informaion for your area.")
 
 # Read user_info to get city and zip_code
-city = user_info["city"]
-zip_code = user_info["zip_code"]
-internet_provider = user_info["internet_provider"]
-
-def start_timer():
-    st.session_state.started = True
-    while st.session_state.started and st.session_state.time_left > 0:
-        st.session_state.time_left -= 1
-        st.write(f"Time left: {st.session_state.time_left} seconds")
-        time.sleep(1)
-        st.experimental_rerun()
-    st.write("Timer is up!")
-    st.markdown(
-        '<i class="fas fa-bell"></i>',
-        unsafe_allow_html=True,
-        help='<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">'
-    )
-
-if "started" not in st.session_state:
-    st.session_state.started = False
-
-if "time_left" not in st.session_state:
-    st.session_state.time_left = 60
-
-if not st.session_state.started:
-    if st.button("Start Timer"):
-        start_timer()
-else:
-    st.write("Timer is running...")
+#city = user_info["city"]
+#zip_code = user_info["zip_code"]
+# internet_provider = user_info["internet_provider"]
 
 # Generate the AI prompt
 api_key = os.getenv("MISTRAL_TOKEN")
@@ -208,18 +213,12 @@ if st.button("Complete Level 1 Mission"):
 
 st.subheader("Level 2: Mail Handling and Trash Disposal")
 
-# Main entry point of the app
-def main():
-    # Call the trash_handling function
-    mail()
-    trash_handling()
-
 def mail():
     st.write("Mail Handling Instructions")
 
-    # Initialize user_info in session state
-    if 'user_info' not in st.session_state:
-        st.session_state.user_info = {}
+    # Initialize mail_info in session state
+    if 'mail_info' not in st.session_state:
+        st.session_state.mail_info = {}
 
     with st.expander("Mail Handling", expanded=True):
         mailbox_location = st.text_area(
@@ -262,9 +261,9 @@ def mail():
         if What_to_do_with_packages:
             st.progress(100)  # Progress bar for Packages
 
-        # Save user input into user_info
+        # Save user input into mail_info
         if st.button("Mail Handling 100% Complete. Click to Save"):
-            st.session_state.user_info = {
+            st.session_state.mail_info = {
                 "Mailbox Location": mailbox_location,
                 "Mailbox Key": mailbox_key,
                 "Pick-Up Schedule": pick_up_schedule,
@@ -275,9 +274,9 @@ def mail():
 
     # Display the saved user information
     st.write("Saved Mail Handing Information")
-    if st.session_state.user_info:
+    if st.session_state.mail_info:
         with st.expander("Saved User Information", expanded=True):
-            for key, value in st.session_state.user_info.items():
+            for key, value in st.session_state.mail_info.items():
                 st.write(f"{key}: {value}")
     else:
         st.write("No user information saved yet.")
