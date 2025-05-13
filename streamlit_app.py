@@ -287,10 +287,13 @@ def mail():
     else:
         st.write("No user information saved yet.")
 
-def trash_handling():
-    st.markdown("Trash Disposal Instructions")
+import streamlit as st
+from PIL import Image
+import io
 
-    # Initialize session state
+def trash_handling():
+    st.markdown("## 🗑️ Trash Disposal Instructions")
+
     if 'trash_info' not in st.session_state:
         st.session_state.trash_info = {}
     if 'trash_images' not in st.session_state:
@@ -299,254 +302,133 @@ def trash_handling():
     days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     times = ["Morning", "Afternoon", "Evening"]
 
+    # --- Indoor Trash Info ---
     with st.expander("Kitchen and Bath Trash Details", expanded=True):
-        # Indoor Trash Info
         st.markdown("##### Fill in the kitchen and bathroom trash info")
-
         progress = 0
         increment = 20
         bar1 = st.progress(progress)
 
-        kitchen_bin_location = st.text_area(
-            "Kitchen Trash Bin Location", 
-            key="kitchen_bin_location",
-            placeholder="Describe where the kitchen trash bin is located. For example, 'Under the kitchen sink' or 'Next to the fridge.'"
-            )
-        if kitchen_bin_location:
-            progress += increment
-            bar1.progress(progress)
-        
-        bathroom_bin_location = st.text_area(
-            "Bathroom Trash Bin Location", 
-            key="bathroom_bin_location",
-            placeholder="Describe where the bathroom trash bin is located. For example, 'Near the toilet' or 'Under the bathroom counter.'"
-            )
-        if bathroom_bin_location:
-            progress += increment
-            bar1.progress(progress)
+        kitchen_bin_location = st.text_area("Kitchen Trash Bin Location", placeholder="E.g. Under the kitchen sink")
+        if kitchen_bin_location: progress += increment; bar1.progress(progress)
 
-        trash_bag_type = st.text_area(
-            "Trash Bag Type & Location", 
-            key="trash_bag_type",
-            placeholder="Please describe the type of trash bags used and where they are stored. For example, 'Black trash bags stored in the pantry.'"
-            )
-        if trash_bag_type:
-            progress += increment
-            bar1.progress(progress)
+        bathroom_bin_location = st.text_area("Bathroom Trash Bin Location", placeholder="E.g. Near the toilet")
+        if bathroom_bin_location: progress += increment; bar1.progress(progress)
 
-        emptying_schedule = st.text_area(
-            "Emptying Schedule", 
-            key="emptying_schedule",
-            placeholder="Indicate how often the trash should be emptied. For example, 'Empty every night' or 'Once a week on Tuesdays.'"
-            )
-        if emptying_schedule:
-            progress += increment
-            bar1.progress(progress)
+        trash_bag_type = st.text_area("Trash Bag Type & Location", placeholder="E.g. Black bags in pantry")
+        if trash_bag_type: progress += increment; bar1.progress(progress)
 
-        replacement_instructions = st.text_area(
-            "Replacing Trash Bags", 
-            key="replacement_instructions",
-            placeholder="Instructions for replacing trash bags. For example, 'Replace bag when full and tie the bag securely.'"
-            )
-        if replacement_instructions:
-            progress += increment
-            bar1.progress(progress)
+        emptying_schedule = st.text_area("Emptying Schedule", placeholder="E.g. Empty every night")
+        if emptying_schedule: progress += increment; bar1.progress(progress)
 
-        # Outdoor bin info
+        replacement_instructions = st.text_area("Replacing Trash Bags", placeholder="E.g. Replace bag when full")
+        if replacement_instructions: progress += increment; bar1.progress(progress)
+
+    # --- Outdoor Bin Info ---
     with st.expander("Outdoor Bin Details", expanded=True):
         st.markdown("##### Outdoor Bin Handling Details")
-
         progress = 0
         increment = 33
         bar2 = st.progress(progress)
-       
-        bin_destination = st.text_area(
-            "Where to Empty the Trash Bins", 
-            key="bin_destination",
-            placeholder="Describe where to empty the outdoor trash bins. For example, 'By the curb on pickup day' or 'Behind the garage.'"
-            )
-        
-        if bin_destination:
-            progress += increment
-            bar2.progress(progress)
 
-        bin_description = st.text_area(
-            "What the Outdoor Trash Bins Look Like", 
-            key="bin_description",
-            placeholder="Describe the appearance of the outdoor trash bins. For example, 'Green with a lid, marked with a recycling symbol.'"
-            )
-        
-        if bin_description:
-            progress += increment
-            bar2.progress(progress)
+        bin_destination = st.text_area("Where to Empty the Trash Bins", placeholder="E.g. By the curb on pickup day")
+        if bin_destination: progress += increment; bar2.progress(progress)
 
-        bin_location_specifics = st.text_area(
-            "Specific Location or Instructions for Outdoor Bins", 
-            key="bin_location_specifics",
-            placeholder="Provide any additional details or specific locations for the outdoor bins. For example, 'Next to the side gate.'"
-            )
-        
-        if bin_location_specifics:
-            progress += increment
-            bar2.progress(progress)
+        bin_description = st.text_area("What the Outdoor Trash Bins Look Like", placeholder="E.g. Green with lid")
+        if bin_description: progress += increment; bar2.progress(progress)
 
-        # Handle image upload or display for outdoor bin
+        bin_location_specifics = st.text_area("Specific Location or Instructions for Outdoor Bins", placeholder="E.g. Next to side gate")
+        if bin_location_specifics: progress += increment; bar2.progress(progress)
+
+        # Image upload helper
         def handle_image(label, display_name):
-            uploaded = None
             image_key = f"{label} Image"
-            if label not in st.session_state.trash_images:
-                st.session_state.trash_images[label] = None
+            if image_key not in st.session_state.trash_images:
+                st.session_state.trash_images[image_key] = None
 
-            if st.session_state.trash_images[label]:
-                st.image(Image.open(io.BytesIO(st.session_state.trash_images[label])), caption=display_name)
+            if st.session_state.trash_images[image_key]:
+                st.image(Image.open(io.BytesIO(st.session_state.trash_images[image_key])), caption=display_name)
                 if st.button(f"Delete {display_name}", key=f"delete_{label}"):
-                    st.session_state.trash_images[label] = None
+                    st.session_state.trash_images[image_key] = None
                     st.experimental_rerun()
             else:
-                uploaded = st.file_uploader(
-                    f"Upload a photo of the {display_name}", 
-                    type=["jpg", "jpeg", "png"], 
-                    key=f"{label}_upload",
-                    help="Upload a clear imapge of the specified trash bin or area")
+                uploaded = st.file_uploader(f"Upload a photo of the {display_name}", type=["jpg", "jpeg", "png"], key=f"{label}_upload")
                 if uploaded:
-                    st.session_state.trash_images[label] = uploaded.read()
+                    st.session_state.trash_images[image_key] = uploaded.read()
                     st.success(f"{display_name} image uploaded.")
                     st.experimental_rerun()
 
         handle_image("Outdoor Bin", "Outdoor Trash Bin")
         handle_image("Recycling Bin", "Recycling Bin")
 
-        # Collection schedule
+    # --- Collection Schedule ---
     with st.expander("Collection Schedule", expanded=True):
         st.markdown("##### Enter your trash and recycling schedule")
-
         progress = 0
         increment = 25
         bar3 = st.progress(progress)
 
-        trash_day = st.selectbox(
-            "Garbage Pickup Day", 
-            days, 
-            key="trash_day",
-            help="Select the day of the week for garbage pickup."
-            )
-        if trash_day:
-            progress += increment
-            bar3.progress(progress)
+        trash_day = st.selectbox("Garbage Pickup Day", days)
+        if trash_day: progress += increment; bar3.progress(progress)
 
-        trash_time = st.selectbox(
-            "Garbage Pickup Time", 
-            times, 
-            key="trash_time",
-            help="Select the day of the week for garbage pickup." 
-            )
-        if trash_time:
-            progress += increment
-            bar3.progress(progress)
+        trash_time = st.selectbox("Garbage Pickup Time", times)
+        if trash_time: progress += increment; bar3.progress(progress)
 
-        recycling_day = st.selectbox(
-            "Recycling Pickup Day", 
-            days, 
-            key="recycling_day",
-            help="Select the time of day for garbage pickup (Morning, Afternoon, or Evening)."
-            )
-        if recycling_day:
-            progress += increment
-            bar3.progress(progress)
+        recycling_day = st.selectbox("Recycling Pickup Day", days)
+        if recycling_day: progress += increment; bar3.progress(progress)
 
-        recycling_time = st.selectbox(
-            "Recycling Pickup Time", 
-            times, 
-            key="recycling_time",
-            help="Select the day of the week for recycling pickup."
-            )
-        if recycling_time:
-            progress += increment
-            bar3.progress(progress)
+        recycling_time = st.selectbox("Recycling Pickup Time", times)
+        if recycling_time: progress += increment; bar3.progress(progress)
 
-        bin_handling_instructions = st.text_area("Instructions for Placing and Returning Outdoor Bins", key="bin_handling_instructions")
+        bin_handling_instructions = st.text_area("Instructions for Placing and Returning Outdoor Bins")
 
-        # Common disposal area
+    # --- Common Disposal Area ---
     with st.expander("Common Disposal Area (if applicable)", expanded=True):
         st.markdown("##### Shared disposal area details")
-        uses_common_disposal = st.checkbox(
-            "Is there a common disposal area?", 
-            key="uses_common_disposal",
-            help= "Check this box if there is a common disposal area where trash and recycling should be placed."
-            )
+        uses_common_disposal = st.checkbox("Is there a common disposal area?")
         common_area_instructions = ""
         progress = 0
         bar4 = st.progress(progress)
 
         if uses_common_disposal:
-            common_area_instructions = st.text_area(
-                "Instructions for Common Disposal Area", 
-                key="common_area_instructions",
-                placeholder= "Describe how to use the common disposal area. For example, 'Place trash bags in the designated dumpster in the alley.'"
-                )
-            handle_image("Common Area", "Common Disposal Area")
+            common_area_instructions = st.text_area("Instructions for Common Disposal Area", placeholder="E.g. Dumpster in alley")
             if common_area_instructions:
                 progress += 100
                 bar4.progress(progress)
-        # Compost
+                handle_image("Common Area", "Common Disposal Area")
+
+    # --- Composting ---
     with st.expander("Composting Instructions (if applicable)", expanded=True):
         st.markdown("##### Composting info")
-        compost_applicable = st.checkbox(
-            "Is composting used?", 
-            key="compost_applicable",
-            help="Check this box if composting is used at this location."
-            )
+        compost_applicable = st.checkbox("Is composting used?")
         compost_instructions = ""
         progress = 0
         bar5 = st.progress(progress)
+
         if compost_applicable:
-            compost_instructions = st.text_area(
-                "Compost Instructions", 
-                key="compost_instructions",
-                placeholder="Describe how to handle compost. For example, 'Place all organic waste in the compost bin on the left side of the yard.'"
-                )
+            compost_instructions = st.text_area("Compost Instructions", placeholder="E.g. Put organics in green bin")
             if compost_instructions:
                 progress += 100
-                bar5 = st.progress(progress)
+                bar5.progress(progress)
 
-        # Waste Management Contact Info
+    # --- Waste Management Contact ---
     with st.expander("Waste Management Contact Info", expanded=True):
         st.markdown("##### Company contact details")
-
         progress = 0
         increment = 33
         bar6 = st.progress(progress)
 
-        wm_name = st.text_input(
-            "Waste Management Contact Company", 
-            key="wm_name",
-            placeholder="Enter the name of waste management company"
-            )
-        if wm_name:
-            progress += increment
-            bar6.progress(progress)
+        wm_name = st.text_input("Waste Management Company Name", placeholder="E.g. WastePro")
+        if wm_name: progress += increment; bar6.progress(progress)
 
-        wm_phone = st.text_input(
-            "Waste Management Contact Phone", 
-            key="wm_phone",
-            placeholder="Enter the contact phone number for waste management."
-            )
-        if wm_phone:
-            progress += increment
-            bar6.progress(progress)
+        wm_phone = st.text_input("Contact Phone Number", placeholder="E.g. (123) 456-7890")
+        if wm_phone: progress += increment; bar6.progress(progress)
 
-        wm_description = st.text_area(
-            "When to call Waste Management Company", 
-            key="wm_description",
-            placeholder= "Provide brief instrucitons for contacting the waste management company (e.g., 'For billing inquiries' or 'To report missed pickup') and information needed to provide the company when contacting them." 
-            )
-        if wm_description:
-            progress += increment
-            bar6.progress(progress)
+        wm_description = st.text_area("When to Contact", placeholder="E.g. Missed pickup or billing issues")
+        if wm_description: progress += increment; bar6.progress(progress)
 
-        # Save
-        if st.button("Trash Handling 100% Complete. Click to Save"):
-            # Save text data
+        # --- Save Button ---
+        if st.button("✅ Trash Handling 100% Complete. Click to Save"):
             st.session_state.trash_info = {
                 "Kitchen Trash Bin Location": kitchen_bin_location,
                 "Bathroom Trash Bin Location": bathroom_bin_location,
@@ -569,38 +451,19 @@ def trash_handling():
                 "Waste Management Contact Phone": wm_phone,
                 "Waste Management Contact Description": wm_description
             }
+            st.success("All trash handling instructions saved successfully!")
 
-            # Save images in session state
-            st.session_state.trash_images = {}  # Reset
-
-            def store_image(file, label):
-                if file is not None:
-                    image_bytes = file.read()
-                    st.session_state.trash_images[label] = image_bytes
-                    st.success(f"{label} image saved.")
-                else:
-                    st.session_state.trash_images[label] = None
-
-            store_image(outdoor_bin_photo, "Outdoor Bin Photo")
-            store_image(recycling_bin_photo, "Recycling Bin Photo")
-            if uses_common_disposal:
-                store_image(common_area_photo, "Common Disposal Area Photo")
-
-            st.success("All trash handling instructions and images saved successfully!")
-
-    # Display saved info and images
-    st.markdown("##### Saved Trash Handling Information")
+    # --- Display saved info and uploaded images ---
     if st.session_state.trash_info:
+        st.markdown("### ✅ Saved Trash Handling Information")
         for key, value in st.session_state.trash_info.items():
             st.write(f"**{key}**: {value}")
 
-    st.markdown("##### Uploaded Photos")
-    for label, image_bytes in st.session_state.trash_images.items():
-        if image_bytes:
-            st.image(Image.open(io.BytesIO(image_bytes)), caption=label)
-
-
-
+    if st.session_state.trash_images:
+        st.markdown("### 🖼️ Uploaded Photos")
+        for label, image_bytes in st.session_state.trash_images.items():
+            if image_bytes:
+                st.image(Image.open(io.BytesIO(image_bytes)), caption=label)
 
 if __name__ == "__main__":
     main()
