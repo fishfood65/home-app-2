@@ -228,7 +228,7 @@ def mail():
             placeholder="The mailbox is located [describe location clearly — e.g., \"at the end of the driveway on the left side\" or \"in the lobby, box #204\""
         )
         if mailbox_location:
-            st.progress(20)  # Progress bar for Mailbox Location
+            st.progress(20)  # Progress bar for Mailbox Location_location
 
         mailbox_key = st.text_area(
             "Mailbox Key (Optional)",
