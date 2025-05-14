@@ -75,7 +75,7 @@ def main():
             if section == "Level 2":
                 mail_trash_handling()
             elif section == "Level 3":
-                home_security()
+                security_convenience()
 
 def home():
     st.subheader("Level 1: 🏡 Home")
@@ -639,6 +639,11 @@ def trash_handling():
             if image_bytes:
                 st.image(Image.open(io.BytesIO(image_bytes)), caption=label)
 
+def security_convenience():
+    st.subheader("Level 3: Security, Privacy, and Quality-Oriented")
+    home_security()
+    convenience_seeker()
+
 def home_security():
     st.write("Security-Conscious")
     # Initialize Security-Conscious in session state
@@ -701,7 +706,23 @@ def home_security():
                 st.session_state.home_security_info['landline_voip']=landline_voip
                 progress += increment; bar7.progress(progress)
     
+def convenience_seeker():
+    st.write("Quality-Oriented")
+    # Initialize Security-Conscious in session state
+    if 'convenience_seeker_info' not in st.session_state:
+        st.session_state.convenience_seeker_info = {}
 
+    with st.expander("Home Quality-Orientaed(if applicable)", expanded=True):
+        st.markdown("##### Home Quality-Orientaed Info")
+        convenience_seeker_applicable = st.dropdown("Someone who wants their home and garden to be well-maintained and is willing to invest in professional help to achieve this?")
+
+        if convenience_seeker_applicable:
+            st.session_state.convenience_seeker_info['convenience_seeker_applicable'] = True
+            
+            with st.expander("Cleaning Serivce Details", expanded=True):
+                st.session_state.convenience_seeker_cleaner = st.checkbox("Do you use a cleaning serivce?")
+            
+        
 
 if __name__ == "__main__":
     main()
