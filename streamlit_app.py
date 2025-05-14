@@ -1043,7 +1043,62 @@ def emergency_kit():
                     st.warning("⚠️ Consider adding a first aid kit to your emergency kit.")
                     st.session_state.first_aid_storage = None  # Clear it if item is removed 
 
+            # Initialize Non-perishable food and bottled water storage in session state if needed
+            if 'food_water_storage' not in st.session_state:
+                st.session_state.food_water_storage = None
 
+            # Logic: Ask for location if included, warn if not
+            if "Non-perishable food and bottled water" not in homeowner_kit_stock:
+                st.write("Non-perishable food and bottled water")
+                food_water_location = st.text_input(
+                    "Where are the non-perishable food and bottled water stored?",
+                    value=st.session_state.food_water_storage or "",
+                    placeholder="E.g. Left corner of the garage top of the shelf"
+                )
+                if food_water_location:
+                    st.session_state.food_water_storage = food_water_location
+                    st.success(f"🥫 Non-perishable food and bottled water stored at: {food_water_location}")
+                else:
+                    st.warning("⚠️ Consider adding non-perishable food and bottled water to your emergency kit.")
+                    st.session_state.food_water_storage = None  # Clear it if item is removed
+
+            # Initialize Medications and personal hygiene items storage in session state if needed
+            if 'medications_storage' not in st.session_state:
+                st.session_state.medications_storage = None
+
+            # Logic: Ask for location if included, warn if not
+            if "Medications and personal hygiene items" not in homeowner_kit_stock:
+                st.write("Medications and personal hygiene items")
+                medications_location = st.text_input(
+                    "Where are the medications and personal hygiene items stored?",
+                    value=st.session_state.medications_storage or "",
+                    placeholder="E.g. Left corner of the garage top of the shelf"
+                )
+                if medications_location:
+                    st.session_state.medications_storage = medications_location
+                    st.success(f"⚕️ Medications and personal hygiene items stored at: {medications_location}")
+                else:
+                    st.warning("⚠️ Consider adding medications and personal hygiene items to your emergency kit.")
+                    st.session_state.medications_storage = None  # Clear it if item is removed
+
+            # Initialize important documents (insurance, identification)storage in session state if needed
+            if 'important_doc_storage' not in st.session_state:
+                st.session_state.important_doc_storage = None
+
+            # Logic: Ask for location if included, warn if not
+            if "Important documents (insurance, identification)" not in homeowner_kit_stock:
+                st.write("Important documents (insurance, identification)")
+                important_doc_location = st.text_input(
+                    "Where are the important documents (insurance, identification) stored?",
+                    value=st.session_state.mimportant_doc_storage or "",
+                    placeholder="E.g. Left corner of the garage top of the shelf"
+                )
+                if important_doc_location:
+                    st.session_state.important_doc_storage = important_doc_location
+                    st.success(f"🔖 Important documents (insurance, identification) stored at: {important_doc_location}")
+                else:
+                    st.warning("⚠️ Consider adding important documents (insurance, identification) to your emergency kit.")
+                    st.session_state.important_doc_storage = None  # Clear it if item is removed
         
 if __name__ == "__main__":
     main()
