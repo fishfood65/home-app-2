@@ -59,23 +59,29 @@ def main():
     # Sidebar navigation
     section = st.sidebar.radio(
         "Choose a Level:",
-        ("Level 1", "Level 2", "Level 3")
+        ("Level 1", "Level 2", "Level 3", "Level 4", "Level 5", "Bonus Level")
     )
 
-    # Always allow user to fill out Home Info
+    # Level 1: Home Info
     if section == "Level 1":
         home()
 
-    # Only allow access to other sections if home info is saved
+    # Levels 2 to Bonus Level require Level 1 info to be completed
     elif section in ("Level 2", "Level 3", "Level 4", "Level 5", "Bonus Level"):
         if not st.session_state.home_info:
-            st.warning("⚠️ Please complete the Level 1 fiwst.")
+            st.warning("⚠️ Please complete Level 1 first.")
             home()
         else:
             if section == "Level 2":
                 mail_trash_handling()
             elif section == "Level 3":
                 security_convenience_ownership()
+            elif section == "Level 4":
+                level_4_placeholder()
+            elif section == "Level 5":
+                level_5_placeholder()
+            elif section == "Bonus Level":
+                bonus_level_placeholder()
 
 def home():
     st.subheader("Level 1: 🏡 Home")
