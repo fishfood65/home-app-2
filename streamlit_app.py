@@ -67,7 +67,7 @@ def main():
         home()
 
     # Only allow access to other sections if home info is saved
-    elif section in ("Level 2", "Level 3"):
+    elif section in ("Level 2", "Level 3", "Level 4", "Level 5", "Bonus Level"):
         if not st.session_state.home_info:
             st.warning("⚠️ Please complete the Level 1 fiwst.")
             home()
@@ -972,6 +972,15 @@ def rent_own():
                 if property_management_description:
                     st.session_state.rent_own_info['property_management_description'] = property_management_description
                     progress += increment; bar16.progress(progress)
+
+def emergency_kit():
+    st.write("Emergency Kit Status")
+
+    # Use st.radio to create a dropdown menu for selecting between renting or owning
+    emergency_kit_status = st.radio(
+        'Do you have an Emergency Kit?',  # Label for the widget
+        ('Select an option', 'Yes', 'No')  # Options to display in the dropdown menu
+    )
 
 if __name__ == "__main__":
     main()
