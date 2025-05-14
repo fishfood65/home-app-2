@@ -74,8 +74,8 @@ def main():
         else:
             if section == "Level 2":
                 mail_trash_handling()
-            elif section == "Leve 3":
-                trash_handling()
+            elif section == "Level 3":
+                home_security()
 
 def home():
     st.subheader("Level 1: 🏡 Home")
@@ -638,6 +638,70 @@ def trash_handling():
         for label, image_bytes in st.session_state.trash_images.items():
             if image_bytes:
                 st.image(Image.open(io.BytesIO(image_bytes)), caption=label)
+
+def home_security():
+    st.write("Security-Conscious")
+    # Initialize Security-Conscious in session state
+    if 'home_security_info' not in st.session_state:
+        st.session_state.home_security_info = {}
+
+    with st.expander("Home Security System (if applicable)", expanded=True):
+        st.markdown("##### Home Security and Privacy Info")
+        home_security_applicable = st.checkbox("Are you home security and privacy conscious?")
+        progress = 0
+        increment = 10
+        bar7 = st.progress(progress)
+
+        if home_security_applicable:
+            st.session_state.home_security_info['home_security_applicable'] = True
+            progress += increment; bar7.progress(progress)
+            
+            home_security_comp_name = st.text_input("Name of the home security company")
+            if home_security_comp_name:
+                st.session_state.home_security_info['home_security_comp_name'] = home_security_comp_name
+                progress += increment; bar7.progress(progress)
+            
+            home_security_comp_num = st.text_input("Contact number for the home security company")
+            if home_security_comp_num:
+                st.session_state_home_security_info['home_security_comp_num'] = home_security_comp_num
+                progress += increment; bar7.progress(progress)
+            
+            arm_disarm_instructions = st.text_area("Instructions to arm and disarm the home security are stored", placeholder="E.g. Shared with you through secure text message or shared password manager link")
+            if arm_disarm_instructions:
+                st.session_state.home_security_info['arm_disarm_instructions'] = arm_disarm_instructions
+                progress += increment; bar7.progress(progress)
+            
+            security_alert_steps = st.text_area("Steps to follow if a security alert is triggered", placeholder="E.g. Check monitor, call security company")
+            if security_alert_steps:
+                st.session_state.home_security_info['security_alert_steps'] = security_alert_steps
+                progress += increment; bar7.progress(progress)
+
+            indoor_cameras = st.text_area("Are there any indoor cameras or monitoring systems in place, and how they might be activated?")
+            if indoor_cameras:
+                st.session_state.home_security_info['indoor_cameras'] = indoor_cameras
+                progress += increment; bar7.progress(progress)
+
+            access_emergency = st.text_area("If there are access instructions available for emergencies or lockouts, and where those instructions are stored (if applicable)")
+            if access_emergency:
+                st.session_state.home_security_info['access_emergency'] = access_emergency
+                progress += increment; bar7.progress(progress)
+
+            wifi_network_name = st.text_input("Where is the Wi-Fi network name and password typically stored in case someone needs it?") 
+            if wifi_network_name:
+                st.session_state.home_security_info['wifi_network_name'] = wifi_network_name
+                progress += increment; bar7.progress(progress)
+
+            wifi_guests = st.text_input("Is there a specific Wi-Fi network guests should use? If yes, how is the password shared?") 
+            if wifi_guests:
+                st.session_state.home_security_info['wifi_guests'] = wifi_network_name
+                progress += increment; bar7.progress(progress)
+
+            landline_voip = st.text_area("Are there any home phones, what are the instructions for when it rings? What provider name and number in case there are issues?")
+            if landline_voip:
+                st.session_state.home_security_info['landline_voip']=landline_voip
+                progress += increment; bar7.progress(progress)
+    
+
 
 if __name__ == "__main__":
     main()
