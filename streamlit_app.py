@@ -994,7 +994,7 @@ def homeowner_kit_stock():
     ]
 
     selected_items = st.multiselect(
-        "Select all included in your well-stocked emergency kit:",
+        "Select all you have:",
         kit_items
     )
     
@@ -1175,26 +1175,45 @@ def emergency_kit():
     )
 
     if emergency_kit_status == 'Yes':
-            st.write("Emergency Kit Info")
-            st.success('This is a success message!', icon=":material/medical_services:")
+        st.write("Emergency Kit Info")
+        st.success('This is a success message!', icon=":material/medical_services:")
 
-            progress = 0
-            increment = 25
-            bar17 = st.progress(progress)
+        progress = 0
+        increment = 25
+        bar17 = st.progress(progress)
             
-            emergency_kit_location = st.text_area("Where is the Emergency Kit located?")
-            if emergency_kit_location:
-                st.session_state.emergency_kit_info['emergency_kit_location'] = emergency_kit_location
-                progress += increment; bar17.progress(progress)
+        emergency_kit_location = st.text_area("Where is the Emergency Kit located?")
+        if emergency_kit_location:
+            st.session_state.emergency_kit_info['emergency_kit_location'] = emergency_kit_location
+        progress += increment; bar17.progress(progress)
 
-            # Call the homeowner_kit_stock function and get the selected items
-            selected_items = homeowner_kit_stock()
-            if selected_items:
-                st.session_state.emergency_kit_info['homeowner_kit_stock'] = selected_items
-                progress += increment
-                bar17.progress(progress)
+        # Call the homeowner_kit_stock function and get the selected items
+        selected_items = homeowner_kit_stock()
+        if selected_items:
+            st.session_state.emergency_kit_info['homeowner_kit_stock'] = selected_items
+            progress += increment
+            bar17.progress(progress)
+    else:
+        st.write("Emergency Kit Info")
+        st.warning("⚠️ Let's build your emergency kit with what you have.")
 
+        progress = 0
+        increment = 25
+        bar17 = st.progress(progress)
 
+        emergency_kit_location = st.text_area("Where do you want to put your emergency kit items?")
+        if emergency_kit_location:
+            st.session_state.emergency_kit_info['emergency_kit_location'] = emergency_kit_location
+        progress += increment; bar17.progress(progress)
+            
+        # Call the homeowner_kit_stock function and get the selected items
+        selected_items = homeowner_kit_stock()
+        if selected_items:
+            st.session_state.emergency_kit_info['homeowner_kit_stock'] = selected_items
+            progress += increment
+            bar17.progress(progress)
+
+        st.success("📦 Emergency Kit Built!")
 
 if __name__ == "__main__":
     main()
