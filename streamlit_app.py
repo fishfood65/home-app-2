@@ -1090,7 +1090,7 @@ def emergency_kit():
                 st.write("Important documents (insurance, identification)")
                 important_doc_location = st.text_input(
                     "Where are the important documents (insurance, identification) stored?",
-                    value=st.session_state.mimportant_doc_storage or "",
+                    value=st.session_state.important_doc_storage or "",
                     placeholder="E.g. Left corner of the garage top of the shelf"
                 )
                 if important_doc_location:
@@ -1099,7 +1099,48 @@ def emergency_kit():
                 else:
                     st.warning("⚠️ Consider adding important documents (insurance, identification) to your emergency kit.")
                     st.session_state.important_doc_storage = None  # Clear it if item is removed
-        
+
+            # Initialize Battery-powered or hand-crank radio storage in session state if needed
+            if 'radio_storage' not in st.session_state:
+                st.session_state.radio_storage = None
+
+            # Logic: Ask for location if included, warn if not
+            if "Battery-powered or hand-crank radio" not in homeowner_kit_stock:
+                st.write("Battery-powered or hand-crank radio")
+                radio_location = st.text_input(
+                    "Where is the battery-powered or hand-crank radio stored?",
+                    value=st.session_state.radio_storage or "",
+                    placeholder="E.g. Left corner of the garage top of the shelf"
+                )
+                if radio_location:
+                    st.session_state.radio_storage = radio_location
+                    st.success(f"📻 Battery-powered or hand-crank radio stored at: {radio_location}")
+                else:
+                    st.warning("⚠️ Consider adding battery-powered or hand-crank radio to your emergency kit.")
+                    st.session_state.radio_storage = None  # Clear it if item is removed       
+
+            # Initialize whistle (for signaling) storage in session state if needed
+            if 'whistle_storage' not in st.session_state:
+                st.session_state.whistle_storage = None
+
+            # Logic: Ask for location if included, warn if not
+            if "Whistle (for signaling)" not in homeowner_kit_stock:
+                st.write("Whistle (for signaling)")
+                whistle_location = st.text_input(
+                    "Where is the whistle (for signaling) stored?",
+                    value=st.session_state.whistle_storage or "",
+                    placeholder="E.g. Left corner of the garage top of the shelf"
+                )
+                if whistle_location:
+                    st.session_state.whistle_storage = whistle_location
+                    st.success(f"📻 Whistle (for signaling)stored at: {whistle_location}")
+                else:
+                    st.warning("⚠️ Consider adding whistle (for signaling) to your emergency kit.")
+                    st.session_state.whistle_storage = None  # Clear it if item is removed
+
+
+
+
 if __name__ == "__main__":
     main()
 
