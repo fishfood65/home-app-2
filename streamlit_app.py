@@ -73,11 +73,11 @@ def main():
             home()
         else:
             if section == "Level 2":
-                mail_trash_handling()
+                emergency_kit_utilities()
             elif section == "Level 3":
-                security_convenience_ownership()
+                mail_trash_handling()
             elif section == "Level 4":
-                emergency_kit()
+                security_convenience_ownership()
             elif section == "Level 5":
                 level_5_placeholder()
             elif section == "Bonus Level":
@@ -220,13 +220,256 @@ def home():
         else:
             st.warning("Please confirm the AI prompt before generating the runbook.")
 
+def emergency_kit_utilities():
+    st.subheader("Level 2: 🏥 Emergency Kit")
+    emergency_kit()
+    
+    with st.expander("Confirm Level 2 AI Prompt Preview by Selecting the button inside"):
+        user_confirmation = st.checkbox("Show Level 2 AI Prompt")
+
+# Define the homeowner_kit_stock function
+def homeowner_kit_stock():
+    kit_items = [
+        "Flashlights and extra batteries",
+        "First aid kit",
+        "Non-perishable food and bottled water",
+        "Medications and personal hygiene items",
+        "Important documents (insurance, identification)",
+        "Battery-powered or hand-crank radio",
+        "Whistle (for signaling)",
+        "Dust masks (for air filtration)",
+        "Local maps and contact lists"
+    ]
+
+    selected_items = st.multiselect(
+        "Select all you have:",
+        kit_items
+    )
+    
+    # Initialize flashlight storage in session state if needed
+    if 'flashlight_storage' not in st.session_state:
+        st.session_state.flashlight_storage = None
+
+    # Logic: Ask for location if included, warn if not
+    if "Flashlights and extra batteries" not in selected_items: # Use selected_items here
+        st.write("Flashlights and extra batteries")
+        flashlight_location = st.text_input(
+            "Where are the flashlights and extra batteries stored?",
+            value=st.session_state.flashlight_storage or "",
+            placeholder="E.g. Top drawer in the hallway closet"
+            )
+        if flashlight_location:
+            st.session_state.flashlight_storage = flashlight_location
+            st.success(f"🔦 Flashlights and batteries stored at: {flashlight_location}")
+        else:
+            st.warning("⚠️ Consider adding flashlights and extra batteries to your emergency kit.")
+            st.session_state.flashlight_storage = None  # Clear it if item is removed
+            
+    # Initialize first aid kit storage in session state if needed
+    if 'first_aid_storage' not in st.session_state:
+        st.session_state.first_aid_storage = None
+
+    # Logic: Ask for location if included, warn if not
+    if "First aid kit" not in selected_items: # Use selected_items here
+        st.write("First aid kit")
+        first_aid_location = st.text_input("Where is the First aid kit?",
+            value=st.session_state.first_aid_storage or "",
+            placeholder="E.g. Medicine cabinet in the hallway bathroom"
+            )
+        if first_aid_location:
+            st.session_state.first_aid_storage = first_aid_location
+            st.success(f"📦 First Aid Kit stored at: {first_aid_location}", icon=":material/medical_services:")
+        else:
+            st.warning("⚠️ Consider adding a first aid kit to your emergency kit.")
+            st.session_state.first_aid_storage = None  # Clear it if item is removed 
+
+    # Initialize Non-perishable food and bottled water storage in session state if needed
+    if 'food_water_storage' not in st.session_state:
+        st.session_state.food_water_storage = None
+
+    # Logic: Ask for location if included, warn if not
+    if "Non-perishable food and bottled water" not in selected_items: # Use selected_items here
+        st.write("Non-perishable food and bottled water")
+        food_water_location = st.text_input("Where are the non-perishable food and bottled water stored?",
+            value=st.session_state.food_water_storage or "",
+            placeholder="E.g. Left corner of the garage top of the shelf"
+            )
+        if food_water_location:
+            st.session_state.food_water_storage = food_water_location
+            st.success(f"🥫 Non-perishable food and bottled water stored at: {food_water_location}")
+        else:
+            st.warning("⚠️ Consider adding non-perishable food and bottled water to your emergency kit.")
+            st.session_state.food_water_storage = None  # Clear it if item is removed
+
+    # Initialize Medications and personal hygiene items storage in session state if needed
+    if 'medications_storage' not in st.session_state:
+        st.session_state.medications_storage = None
+
+    # Logic: Ask for location if included, warn if not
+    if "Medications and personal hygiene items" not in selected_items: # Use selected_items here
+        st.write("Medications and personal hygiene items")
+        medications_location = st.text_input("Where are the medications and personal hygiene items stored?",
+            value=st.session_state.medications_storage or "",
+            placeholder="E.g. Left corner of the garage top of the shelf"
+            )
+        if medications_location:
+            st.session_state.medications_storage = medications_location
+            st.success(f"⚕️ Medications and personal hygiene items stored at: {medications_location}")
+        else:
+            st.warning("⚠️ Consider adding medications and personal hygiene items to your emergency kit.")
+            st.session_state.medications_storage = None  # Clear it if item is removed
+
+    # Initialize important documents (insurance, identification)storage in session state if needed
+    if 'important_doc_storage' not in st.session_state:
+        st.session_state.important_doc_storage = None
+
+    # Logic: Ask for location if included, warn if not
+    if "Important documents (insurance, identification)" not in selected_items: # Use selected_items here
+        st.write("Important documents (insurance, identification)")
+        important_doc_location = st.text_input(
+                    "Where are the important documents (insurance, identification) stored?",
+                    value=st.session_state.important_doc_storage or "",
+                    placeholder="E.g. Left corner of the garage top of the shelf"
+                )
+        if important_doc_location:
+            st.session_state.important_doc_storage = important_doc_location
+            st.success(f"🔖 Important documents (insurance, identification) stored at: {important_doc_location}")
+        else:
+            st.warning("⚠️ Consider adding important documents (insurance, identification) to your emergency kit.")
+            st.session_state.important_doc_storage = None  # Clear it if item is removed
+
+    # Initialize Battery-powered or hand-crank radio storage in session state if needed
+    if 'radio_storage' not in st.session_state:
+        st.session_state.radio_storage = None
+
+    # Logic: Ask for location if included, warn if not
+    if "Battery-powered or hand-crank radio" not in selected_items: # Use selected_items here
+        st.write("Battery-powered or hand-crank radio")
+        radio_location = st.text_input("Where is the battery-powered or hand-crank radio stored?",
+            value=st.session_state.radio_storage or "",
+            placeholder="E.g. Left corner of the garage top of the shelf"
+            )
+        if radio_location:
+            st.session_state.radio_storage = radio_location
+            st.success(f"📻 Battery-powered or hand-crank radio stored at: {radio_location}")
+        else:
+            st.warning("⚠️ Consider adding battery-powered or hand-crank radio to your emergency kit.")
+            st.session_state.radio_storage = None  # Clear it if item is removed       
+
+    # Initialize whistle (for signaling) storage in session state if needed
+    if 'whistle_storage' not in st.session_state:
+        st.session_state.whistle_storage = None
+
+    # Logic: Ask for location if included, warn if not
+    if "Whistle (for signaling)" not in selected_items: # Use selected_items here
+        st.write("Whistle (for signaling)")
+        whistle_location = st.text_input("Where is the whistle (for signaling) stored?",
+            value=st.session_state.whistle_storage or "",
+            placeholder="E.g. Left corner of the garage top of the shelf"
+            )
+        if whistle_location:
+            st.session_state.whistle_storage = whistle_location
+            st.success(f"📣 Whistle (for signaling) stored at: {whistle_location}")
+        else:
+            st.warning("⚠️ Consider adding whistle (for signaling) to your emergency kit.")
+            st.session_state.whistle_storage = None  # Clear it if item is removed
+
+    # Initialize dust masks (for air filtration) storage in session state if needed
+    if 'mask_storage' not in st.session_state:
+        st.session_state.mask_storage = None
+
+    # Logic: Ask for location if included, warn if not
+    if "Dust masks (for air filtration)" not in selected_items: # Use selected_items here
+        st.write("Dust masks (for air filtration)")
+        mask_location = st.text_input("Where is the Dust masks (for air filtration) stored?",
+            value=st.session_state.mask_storage or "",
+            placeholder="E.g. Left corner of the garage top of the shelf"
+            )
+        if mask_location:
+            st.session_state.mask_storage = mask_location
+            st.success(f"😷 Dust masks (for air filtration) stored at: {mask_location}")
+        else:
+            st.warning("⚠️ Consider adding Dust masks (for air filtration) to your emergency kit.")
+            st.session_state.mask_storage = None  # Clear it if item is removed
+
+    # Initialize local maps and contact lists storage in session state if needed
+    if 'maps_contacts_storage' not in st.session_state:
+        st.session_state.maps_contacts_storage = None
+
+    # Logic: Ask for location if included, warn if not
+    if "Local maps and contact lists" not in selected_items: # Use selected_items here
+        st.write("Local maps and contact lists")
+        maps_contacts_location = st.text_input(
+            "Where are the local maps and contact lists stored?",
+            value=st.session_state.maps_contacts_storage or "",
+            placeholder="E.g. Left corner of the garage top of the shelf"
+            )
+        if maps_contacts_location:
+            st.session_state.maps_contacts_storage = maps_contacts_location
+            st.success(f"🗺️ Local maps and contact lists stored at: {maps_contacts_location}")
+        else:
+            st.warning("⚠️ Consider adding local maps and contact lists to your emergency kit.")
+            st.session_state.maps_contacts_storage = None  # Clear it if item is removed    
+    
+    return selected_items
+
+def emergency_kit():
+    st.write("Emergency Kit Status")
+
+    # Use st.radio to create a dropdown menu for selecting between renting or owning
+    emergency_kit_status = st.radio(
+        'Do you have an Emergency Kit?',  # Label for the widget
+        ('Yes', 'No')  # Options to display in the dropdown menu
+    )
+
+    if emergency_kit_status == 'Yes':
+        st.write("Emergency Kit Info")
+        st.success('This is a success message!', icon=":material/medical_services:")
+
+        progress = 0
+        increment = 25
+        bar17 = st.progress(progress)
+            
+        emergency_kit_location = st.text_area("Where is the Emergency Kit located?")
+        if emergency_kit_location:
+            st.session_state.emergency_kit_info['emergency_kit_location'] = emergency_kit_location
+        progress += increment; bar17.progress(progress)
+
+        # Call the homeowner_kit_stock function and get the selected items
+        selected_items = homeowner_kit_stock()
+        if selected_items:
+            st.session_state.emergency_kit_info['homeowner_kit_stock'] = selected_items
+            progress += increment
+            bar17.progress(progress)
+    else:
+        st.write("Emergency Kit Info")
+        st.warning("⚠️ Let's build your emergency kit with what you have.")
+
+        progress = 0
+        increment = 25
+        bar17 = st.progress(progress)
+
+        emergency_kit_location = st.text_area("Where do you want to put your emergency kit items?")
+        if emergency_kit_location:
+            st.session_state.emergency_kit_info['emergency_kit_location'] = emergency_kit_location
+        progress += increment; bar17.progress(progress)
+            
+        # Call the homeowner_kit_stock function and get the selected items
+        selected_items = homeowner_kit_stock()
+        if selected_items:
+            st.session_state.emergency_kit_info['homeowner_kit_stock'] = selected_items
+            progress += increment
+            bar17.progress(progress)
+
+        st.success("📦 Emergency Kit Built!")
+
 def mail_trash_handling():
-    st.subheader("Level 2: Mail and Trash Handling")
+    st.subheader("Level 3: Mail and Trash Handling")
     mail ()
     trash_handling()
 
-    with st.expander("Confirm Level 2 AI Prompt Preview by Selecting the button inside"):
-        user_confirmation = st.checkbox("Show Level 2 AI Prompt")
+    with st.expander("Confirm Level 3 AI Prompt Preview by Selecting the button inside"):
+        user_confirmation = st.checkbox("Show Level 3 AI Prompt")
         if user_confirmation:
             prompt = f"""
             You are a helpful assistant creating an **Emergency Manual** for a household located in a city: {st.session_state.home_info.get("City", "Unknown City")} and Zip Code: {st.session_state.home_info.get("Zip Code", "00000")}.  This manual is for residents or house sitters to use during emergencies, with clear, calm, and step-by-step guidance.
@@ -350,7 +593,7 @@ def mail_trash_handling():
     
         return formatted_text
 
-    if st.button("Complete Level 2 Mission"):
+    if st.button("Complete Level 3 Mission"):
         if user_confirmation:
             # Use Mistral for model inference
             client = Mistral(api_key=api_key)
