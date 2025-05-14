@@ -990,6 +990,8 @@ def emergency_kit():
 
     if emergency_kit_status == 'Yes':
             st.write("Emergency Kit Info")
+            st.success('This is a success message!', icon=":material/medical_services:")
+
             progress = 0
             increment = 25
             bar17 = st.progress(progress)
@@ -1017,11 +1019,31 @@ def emergency_kit():
                 )
                 if flashlight_location:
                     st.session_state.flashlight_storage = flashlight_location
-                    st.success(f"📦 Flashlights and batteries stored at: {flashlight_location}")
+                    st.success(f"🔦 Flashlights and batteries stored at: {flashlight_location}")
                 else:
                     st.warning("⚠️ Consider adding flashlights and extra batteries to your emergency kit.")
                     st.session_state.flashlight_storage = None  # Clear it if item is removed
-        
+            
+            # Initialize first aid kit storage in session state if needed
+            if 'first_aid_storage' not in st.session_state:
+                st.session_state.first_aid_storage = None
+
+            # Logic: Ask for location if included, warn if not
+            if "First aid kit" not in homeowner_kit_stock:
+                st.write("First aid kit")
+                first_aid_location = st.text_input(
+                    "Where is the First aid kit?",
+                    value=st.session_state.first_aid_storage or "",
+                    placeholder="E.g. Medicine cabinet in the hallway bathroom"
+                )
+                if first_aid_location:
+                    st.session_state.first_aid_storage = first_aid_location
+                    st.success(f"📦 First Aid Kit stored at: {first_aid_location}", icon=":material/medical_services:")
+                else:
+                    st.warning("⚠️ Consider adding a first aid kit to your emergency kit.")
+                    st.session_state.first_aid_storage = None  # Clear it if item is removed 
+
+
         
 if __name__ == "__main__":
     main()
