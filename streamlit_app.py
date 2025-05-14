@@ -640,7 +640,7 @@ def trash_handling():
                 st.image(Image.open(io.BytesIO(image_bytes)), caption=label)
 
 def security_convenience_ownership():
-    st.subheader("Level 3: Security, Privacy, and Quality-Oriented")
+    st.subheader("Level 3: Home Security, Privacy, Quality-Orientation, and Support")
     home_security()
     convenience_seeker()
     rent_own()
