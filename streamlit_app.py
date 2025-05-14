@@ -1002,7 +1002,7 @@ def emergency_kit():
                 progress += increment; bar17.progress(progress)  
 
             homeowner_kit_stock = st.multiselect("Select all included in your well-stocked emergency kit.",
-            ["Flashlights and extra batteries", "First aid kit", "Non-perishable food and bottled water", "Medications and personal hygiene items", "Important documents (insurance, identification)", "Battery-powered or hand-crank radio", "Whistle (for signaling)", "Dust masks (for air filtration", "Local maps and contact lists"]
+            ["Flashlights and extra batteries", "First aid kit", "Non-perishable food and bottled water", "Medications and personal hygiene items", "Important documents (insurance, identification)", "Battery-powered or hand-crank radio", "Whistle (for signaling)", "Dust masks (for air filtration)", "Local maps and contact lists"]
             )
 
             # Initialize flashlight storage in session state if needed
@@ -1133,12 +1133,48 @@ def emergency_kit():
                 )
                 if whistle_location:
                     st.session_state.whistle_storage = whistle_location
-                    st.success(f"📻 Whistle (for signaling)stored at: {whistle_location}")
+                    st.success(f"📣 Whistle (for signaling) stored at: {whistle_location}")
                 else:
                     st.warning("⚠️ Consider adding whistle (for signaling) to your emergency kit.")
                     st.session_state.whistle_storage = None  # Clear it if item is removed
 
+            # Initialize dust masks (for air filtration) storage in session state if needed
+            if 'mask_storage' not in st.session_state:
+                st.session_state.mask_storage = None
 
+            # Logic: Ask for location if included, warn if not
+            if "Dust masks (for air filtration)" not in homeowner_kit_stock:
+                st.write("Dust masks (for air filtration)")
+                mask_location = st.text_input(
+                    "Where is the Dust masks (for air filtration) stored?",
+                    value=st.session_state.mask_storage or "",
+                    placeholder="E.g. Left corner of the garage top of the shelf"
+                )
+                if mask_location:
+                    st.session_state.mask_storage = mask_location
+                    st.success(f"😷 Dust masks (for air filtration) stored at: {mask_location}")
+                else:
+                    st.warning("⚠️ Consider adding Dust masks (for air filtration) to your emergency kit.")
+                    st.session_state.mask_storage = None  # Clear it if item is removed
+
+            # Initialize local maps and contact lists storage in session state if needed
+            if 'maps_contacts_storage' not in st.session_state:
+                st.session_state.aps_contacts_storage = None
+
+            # Logic: Ask for location if included, warn if not
+            if "Local maps and contact lists" not in homeowner_kit_stock:
+                st.write("Local maps and contact lists")
+                maps_contacts_location = st.text_input(
+                    "Where are the local maps and contact lists stored?",
+                    value=st.session_state.maps_contacts_storage or "",
+                    placeholder="E.g. Left corner of the garage top of the shelf"
+                )
+                if maps_contacts_location:
+                    st.session_state.maps_contacts_storage = maps_contacts_location
+                    st.success(f"🗺️ Local maps and contact lists stored at: {maps_contacts_location}")
+                else:
+                    st.warning("⚠️ Consider adding local maps and contact lists to your emergency kit.")
+                    st.session_state.maps_contacts_storage = None  # Clear it if item is removed
 
 
 if __name__ == "__main__":
