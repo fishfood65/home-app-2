@@ -223,9 +223,105 @@ def home():
 def emergency_kit_utilities():
     st.subheader("Level 2: 🏥 Emergency Kit")
     emergency_kit()
+    build_emergency_runbook_prompt()
     
     with st.expander("Confirm Level 2 AI Prompt Preview by Selecting the button inside"):
         user_confirmation = st.checkbox("Show Level 2 AI Prompt")
+        if user_confirmation:
+            prompt = build_emergency_runbook_prompt(
+            city=st.session_state.get("city", ""),
+            zip_code=st.session_state.get("zip_code", ""),
+            internet_provider_name=st.session_state.get("internet_provider", ""),
+            electricity_provider_name=st.session_state.get("electricity_provider", ""),
+            natural_gas_provider_name=st.session_state.get("gas_provider", ""),
+            water_provider_name=st.session_state.get("water_provider", ""),
+            emergency_kit_status=st.session_state.get("emergency_kit_status", "No"),
+            emergency_kit_location=st.session_state.emergency_kit_info.get("emergency_kit_location", ""),
+            selected_items=st.session_state.emergency_kit_info.get("homeowner_kit_stock", []),
+            item_locations={
+                "flashlight_storage": st.session_state.get("flashlight_storage", ""),
+                "first_aid_storage": st.session_state.get("first_aid_storage", ""),
+                "food_water_storage": st.session_state.get("food_water_storage", ""),
+                "medications_storage": st.session_state.get("medications_storage", ""),
+                "important_doc_storage": st.session_state.get("important_doc_storage", ""),
+                "radio_storage": st.session_state.get("radio_storage", ""),
+                "whistle_storage": st.session_state.get("whistle_storage", ""),
+                "mask_storage": st.session_state.get("mask_storage", ""),
+                "maps_contacts_storage": st.session_state.get("maps_contacts_storage", "")
+        }
+    )
+            st.code(prompt, language="markdown")
+
+# Generate comprehensive output using Mistral API
+    st.write ("Next, Click the button to generate your personalized emergency run book document")
+
+    # Function to process the output for formatting (e.g., apply bold, italics, headings)
+    def process_output_for_formatting(output):
+        # Example processing: bold headings or text wrapped in markdown-style asterisks
+        formatted_text = ""
+        # Replace markdown-like headings (e.g., ## Heading) with docx headings
+        formatted_text = re.sub(r"^## (.*)", r"\n\n\1\n", output)
+        
+        # Replace markdown-like bold (e.g., **bold**)
+        formatted_text = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", formatted_text)
+        
+        # Replace markdown-like italics (e.g., *italic*)
+        formatted_text = re.sub(r"\*(.*?)\*", r"<i>\1</i>", formatted_text)
+    
+        return formatted_text
+
+    if st.button("Complete Level 2 Mission"):
+        if user_confirmation:
+            # Use Mistral for model inference
+            client = Mistral(api_key=api_key)
+            
+            # Define the prompt as a "chat" message format
+            completion = client.chat.complete(
+                model="mistral-small-latest",  # Specify the model ID
+                messages=[  # Pass a message format similar to a conversation
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=1500,  # Set the max tokens
+                temperature=0.5,  # Control the randomness of the output
+            )
+            
+            # Access the content from the 'AssistantMessage' object using the .content attribute
+            output = completion.choices[0].message.content # Access the generated message
+            
+            # Convert `output` to string if it's not already a string
+            if isinstance(output, str):
+                output_text = output
+            else:
+                # If output is an object, extract its string representation
+                output_text = str(output)  # You can also try accessing specific attributes if needed
+            
+            st.success("Emergency run book generated successfully! Mission Accomplished.")
+            st.write(output_text)
+
+            # Create a DOCX file from the output text
+            doc = Document()
+            doc.add_heading('Home Emergency Runbook', 0)
+            
+            # Process and add formatted output to the document
+            # Example: preserve line breaks and formatting in output
+            formatted_output = process_output_for_formatting(output)
+            doc.add_paragraph(formatted_output)
+        
+
+            # Save DOCX to a temporary file
+            doc_filename = "home_emergency.docx"
+            doc.save(doc_filename)
+
+            # Provide a download button for the DOCX file
+            with open(doc_filename, "rb") as doc_file:
+                st.download_button(
+                    label="Download Runbook as DOCX",
+                    data=doc_file,
+                    file_name=doc_filename,
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
+        else:
+            st.warning("Please confirm the AI prompt before generating the runbook.")
 
 # Define the homeowner_kit_stock function
 def homeowner_kit_stock():
@@ -463,6 +559,143 @@ def emergency_kit():
 
         st.success("📦 Emergency Kit Built!")
 
+def build_emergency_runbook_prompt(
+            city=st.session_state.get("city", ""),
+            zip_code=st.session_state.get("zip_code", ""),
+            internet_provider_name=st.session_state.get("internet_provider",""),
+            electricity_provider_name="{{AUTO-LOOKUP}}",
+            natural_gas_provider_name="{{AUTO-LOOKUP}}",
+            water_provider_name="{{AUTO-LOOKUP}}",
+            emergency_kit_status=st.session_state.get("emergency_kit_status", "No"),
+            emergency_kit_location=st.session_state.emergency_kit_info.get("emergency_kit_location", ""),
+            selected_items=st.session_state.emergency_kit_info.get("homeowner_kit_stock", []),
+            flashlights_info=st.session_state.get("flashlights_info", ""),
+            radio_info=st.session_state.get("radio_info", ""),
+            food_water_info=st.session_state.get("food_water_info", ""),
+            important_docs_info=st.session_state.get("important_docs_info", ""),
+            whistle_info=st.session_state.get("whistle_info", ""),
+            medications_info=st.session_state.get("medications_info", ""),
+            mask_info=st.session_state.get("mask_info", ""),
+            maps_contacts_info=st.session_state.get("maps_contacts_info", ""),
+            item_locations={
+                "flashlight_storage": st.session_state.get("flashlight_storage", ""),
+                "first_aid_storage": st.session_state.get("first_aid_storage", ""),
+                "food_water_storage": st.session_state.get("food_water_storage", ""),
+                "medications_storage": st.session_state.get("medications_storage", ""),
+                "important_doc_storage": st.session_state.get("important_doc_storage", ""),
+                "radio_storage": st.session_state.get("radio_storage", ""),
+                "whistle_storage": st.session_state.get("whistle_storage", ""),
+                "mask_storage": st.session_state.get("mask_storage", ""),
+                "maps_contacts_storage": st.session_state.get("maps_contacts_storage", "")
+            }
+        ):
+
+    return f"""
+You are an expert assistant generating a city-specific Emergency Preparedness Run Book. First, search the internet for up-to-date local utility providers and their emergency contact information. Then, compose a comprehensive, easy-to-follow guide customized for residents of City: {city}, Zip Code: {zip_code}.
+
+Start by identifying the following utility/service providers for the specified location:
+- Internet Provider Name
+- Electricity Provider Name
+- Natural Gas Provider Name
+- Water Provider Name
+
+For each provider, retrieve:
+- Company Description
+- Customer Service Phone Number
+- Customer Service Address (if available)
+- Official Website
+- Emergency Contact Numbers (specific to outages, leaks, service disruptions)
+- Steps to report issues
+
+In each section, include any user-supplied emergency kit items relevant to that emergency, such as flashlights, radios, water, documents, and medications. Indicate their availability and location.
+
+---
+
+### 🧰 Emergency Kit Summary
+
+- Has Emergency Kit: {emergency_kit_status}
+- Kit Location: {emergency_kit_location}
+
+**Kit Inventory:**
+{selected_items}
+
+---
+
+### 📕 Emergency Run Book
+
+#### ⚡ 1. Electricity – {electricity_provider_name}
+- Provider Description
+- Customer Service
+- Website
+- Emergency Contact
+
+**Power Outage Response Guide:**
+- Steps to follow
+- How to report
+- Safety precautions
+- **Recommended Kit Items**:
+  - {flashlights_info}
+  - {radio_info}
+  - {food_water_info}
+  - {important_docs_info}
+
+---
+
+#### 🔥 2. Natural Gas – {natural_gas_provider_name}
+- Provider Description
+- Customer Service
+- Website
+- Emergency Contact
+
+**Gas Leak Response Guide:**
+- Signs and precautions
+- How to evacuate
+- How to report
+- **Recommended Kit Items**:
+  - {whistle_info}
+  - {important_docs_info}
+  - {flashlights_info}
+
+---
+
+#### 💧 3. Water – {water_provider_name}
+- Provider Description
+- Customer Service
+- Website
+- Emergency Contact
+
+**Water Outage or Leak Guide:**
+- Detection steps
+- Shutoff procedure
+- **Recommended Kit Items**:
+  - {food_water_info}
+  - {medications_info}
+  - {mask_info}
+  - {important_docs_info}
+
+---
+
+#### 🌐 4. Internet – {internet_provider_name}
+- Provider Description
+- Customer Service
+- Website
+- Emergency Contact
+
+**Internet Outage Response Guide:**
+- Troubleshooting
+- Reporting
+- Staying informed
+- **Recommended Kit Items**:
+  - {radio_info}
+  - {maps_contacts_info}
+  - {important_docs_info}
+
+---
+
+Ensure the run book is clearly formatted using Markdown, with bold headers and bullet points. Use ⚠️ to highlight missing kit items.
+""".strip()
+
+
 def mail_trash_handling():
     st.subheader("Level 3: Mail and Trash Handling")
     mail ()
@@ -576,7 +809,7 @@ def mail_trash_handling():
             st.code(prompt)
 
     # Generate comprehensive output using Mistral API
-    st.write ("Next, Click the button to generate your personalized emergency run book document")
+    st.write ("Next, Click the button to generate your enhanced personalized emergency run book document")
 
     # Function to process the output for formatting (e.g., apply bold, italics, headings)
     def process_output_for_formatting(output):
@@ -618,12 +851,12 @@ def mail_trash_handling():
                 # If output is an object, extract its string representation
                 output_text = str(output)  # You can also try accessing specific attributes if needed
             
-            st.success("Emergency run book generated successfully! Mission Accomplished.")
+            st.success("Enhanced Emergency run book generated successfully! Mission Accomplished.")
             st.write(output_text)
 
             # Create a DOCX file from the output text
             doc = Document()
-            doc.add_heading('Home Emergency Runbook', 0)
+            doc.add_heading('Enhanced Home Emergency Runbook', 0)
             
             # Process and add formatted output to the document
             # Example: preserve line breaks and formatting in output
@@ -632,7 +865,7 @@ def mail_trash_handling():
         
 
             # Save DOCX to a temporary file
-            doc_filename = "home_emergency.docx"
+            doc_filename = "enhanced_home_emergency.docx"
             doc.save(doc_filename)
 
             # Provide a download button for the DOCX file
@@ -1416,46 +1649,34 @@ def emergency_kit():
         'Do you have an Emergency Kit?',  # Label for the widget
         ('Yes', 'No')  # Options to display in the dropdown menu
     )
+    # ✅ Store it in session state
+    st.session_state["emergency_kit_status"] = emergency_kit_status
+
+    # Initialize or update emergency_kit_info dictionary in session state
+    if "emergency_kit_info" not in st.session_state:
+        st.session_state.emergency_kit_info = {}
+
+    # Step 2: Collect location
 
     if emergency_kit_status == 'Yes':
         st.write("Emergency Kit Info")
-        st.success('This is a success message!', icon=":material/medical_services:")
-
-        progress = 0
-        increment = 25
-        bar17 = st.progress(progress)
-            
+        st.success('Great! Let’s record what’s inside.', icon=":material/medical_services:")
         emergency_kit_location = st.text_area("Where is the Emergency Kit located?")
-        if emergency_kit_location:
-            st.session_state.emergency_kit_info['emergency_kit_location'] = emergency_kit_location
-        progress += increment; bar17.progress(progress)
-
-        # Call the homeowner_kit_stock function and get the selected items
-        selected_items = homeowner_kit_stock()
-        if selected_items:
-            st.session_state.emergency_kit_info['homeowner_kit_stock'] = selected_items
-            progress += increment
-            bar17.progress(progress)
     else:
         st.write("Emergency Kit Info")
         st.warning("⚠️ Let's build your emergency kit with what you have.")
+        emergency_kit_location = st.text_area("Where will you place your emergency kit items?")
 
-        progress = 0
-        increment = 25
-        bar17 = st.progress(progress)
+    # ✅ Store location if provided
+    if emergency_kit_location:
+        st.session_state.emergency_kit_info['emergency_kit_location'] = emergency_kit_location
 
-        emergency_kit_location = st.text_area("Where do you want to put your emergency kit items?")
-        if emergency_kit_location:
-            st.session_state.emergency_kit_info['emergency_kit_location'] = emergency_kit_location
-        progress += increment; bar17.progress(progress)
-            
-        # Call the homeowner_kit_stock function and get the selected items
-        selected_items = homeowner_kit_stock()
-        if selected_items:
-            st.session_state.emergency_kit_info['homeowner_kit_stock'] = selected_items
-            progress += increment
-            bar17.progress(progress)
+    # Step 3: Collect kit items
+    selected_items = homeowner_kit_stock()
+    if selected_items:
+        st.session_state.emergency_kit_info['homeowner_kit_stock'] = selected_items
 
+    if emergency_kit_status == "No":
         st.success("📦 Emergency Kit Built!")
 
 if __name__ == "__main__":
