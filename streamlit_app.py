@@ -77,7 +77,7 @@ def main():
             elif section == "Level 3":
                 security_convenience_ownership()
             elif section == "Level 4":
-                level_4_placeholder()
+                emergency_kit()
             elif section == "Level 5":
                 level_5_placeholder()
             elif section == "Bonus Level":
