@@ -1159,7 +1159,7 @@ def emergency_kit():
 
             # Initialize local maps and contact lists storage in session state if needed
             if 'maps_contacts_storage' not in st.session_state:
-                st.session_state.aps_contacts_storage = None
+                st.session_state.maps_contacts_storage = None
 
             # Logic: Ask for location if included, warn if not
             if "Local maps and contact lists" not in homeowner_kit_stock:
