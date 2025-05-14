@@ -985,7 +985,7 @@ def emergency_kit():
     # Use st.radio to create a dropdown menu for selecting between renting or owning
     emergency_kit_status = st.radio(
         'Do you have an Emergency Kit?',  # Label for the widget
-        ('Select an option', 'Yes', 'No')  # Options to display in the dropdown menu
+        ('Yes', 'No')  # Options to display in the dropdown menu
     )
 
 if __name__ == "__main__":
