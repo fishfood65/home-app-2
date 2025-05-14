@@ -714,13 +714,120 @@ def convenience_seeker():
 
     with st.expander("Home Quality-Orientaed(if applicable)", expanded=True):
         st.markdown("##### Home Quality-Orientaed Info")
-        convenience_seeker_applicable = st.dropdown("Someone who wants their home and garden to be well-maintained and is willing to invest in professional help to achieve this?")
+        
+        convenience_seeker_options = st.multiselect("As Someone who wants their home and garden to be well-maintained and is willing to invest in professional help to achieve this. What are the services you pay for?",
+            ["Cleaning", "Gardening/Landscape", "Pool Maintenance"]
+            )       
+        if 'Cleaning' in convenience_seeker_options:
+            st.write("Cleaning Service Info")
+            progress = 0
+            increment = 16
+            bar8 = st.progress(progress)
 
-        if convenience_seeker_applicable:
-            st.session_state.convenience_seeker_info['convenience_seeker_applicable'] = True
+            cleaning_name = st.text_input("Name of the cleaning company")
+            if cleaning_name:
+                st.session_state.convenience_seeker_info['cleaning_name'] = cleaning_name
+                progress += increment; bar8.progress(progress)
+        
+            cleaning_number = st.text_input("Number for the cleaning company")
+            if cleaning_number:
+                st.session_state.convenience_seeker_info['cleaning_number'] = cleaning_number
+                progress += increment; bar8.progress(progress)
+
+            cleaning_schedule = st.text_input("Cleaning Schedule")
+            if cleaning_schedule:
+                st.session_state.convenience_seeker_info['cleaning_number'] = cleaning_schedule
+                progress += increment; bar8.progress(progress)
+
+            cleaning_access = st.text_input("How do the cleaners typically gain access to the home (e.g., key, alarm code, security access)?")
+            if cleaning_access: 
+                st.session_state.convenience_seeker_info['cleaning_access'] = cleaning_access
+                progress += increment; bar8.progress(progress)
             
-            with st.expander("Cleaning Serivce Details", expanded=True):
-                st.session_state.convenience_seeker_cleaner = st.checkbox("Do you use a cleaning serivce?")
+            cleaning_finish_steps = st.text_area("What steps are taken when the cleaning service finishes (e.g., locking up, securing the home)?")
+            if cleaning_finish_steps:
+                st.session_state.convenience_seeker_info['cleaning_finish_steps']= cleaning_finish_steps
+                progress += increment; bar8.progress(progress)
+            
+            cleaning_identity_confirmation = st.text_area("How do you confirm the identity or legitimacy of the cleaning crew when they arrive (e.g. ID, references)?")
+            if cleaning_identity_confirmation:
+                st.session_state.convenience_seeker_info['cleaning_identity_confirmation'] =cleaning_identity_confirmation
+                progress += increment; bar8.progress(progress)
+
+        if 'Gardening/Landscape' in convenience_seeker_options:
+            st.write("Gardening/Landscape Info")
+            progress = 0
+            increment = 16
+            bar9 = st.progress(progress)
+
+            gardening_name = st.text_input("Name of the Gardening/Landscape company")
+            if gardening_name:
+                st.session_state.convenience_seeker_info['gardening_name'] = gardening_name
+                progress += increment; bar9.progress(progress)
+        
+            gardening_number = st.text_input("Number for the Gardening/Landscape company")
+            if gardening_number:
+                st.session_state.convenience_seeker_info['gardening_number'] = gardening_number
+                progress += increment; bar9.progress(progress)
+
+            gardening_schedule = st.text_input("Gardening/Landscape Schedule")
+            if gardening_schedule:
+                st.session_state.convenience_seeker_info['gardening_schedule'] = gardening_schedule
+                progress += increment; bar9.progress(progress)
+
+            gardening_access = st.text_input("How do the gardeners/landscapers typically gain access to the home (e.g., key, alarm code, security access)?")
+            if gardening_access: 
+                st.session_state.convenience_seeker_info['gardening_access'] = gardening_access
+                progress += increment; bar9.progress(progress)
+            
+            gardening_finish_steps = st.text_area("What steps are taken when the Gardening/Landscape service finishes (e.g., locking up, securing the home)?")
+            if gardening_finish_steps:
+                st.session_state.convenience_seeker_info['gardening_finish_steps']= gardening_finish_steps
+                progress += increment; bar9.progress(progress)
+            
+            gardening_identity_confirmation = st.text_area("How do you confirm the identity or legitimacy of the Gardening/Landscape crew when they arrive (e.g. ID, references)?")
+            if gardening_identity_confirmation:
+                st.session_state.convenience_seeker_info['gardening_identity_confirmation'] =gardening_identity_confirmation
+                progress += increment; bar9.progress(progress)
+
+        if 'Pool Maintenance' in convenience_seeker_options:
+            st.write("Pool Maintenance Info")
+            progress = 0
+            increment = 16
+            bar10 = st.progress(progress)
+
+            pool_name = st.text_input("Name of the Pool Maintenance company")
+            if pool_name:
+                st.session_state.convenience_seeker_info['Pool Maintenance_name'] = pool_name
+                progress += increment; bar10.progress(progress)
+        
+            pool_number = st.text_input("Number for the Pool Maintenance company")
+            if pool_number:
+                st.session_state.convenience_seeker_info['pool_number'] = pool_number
+                progress += increment; bar10.progress(progress)
+
+            pool_schedule = st.text_input("Pool Maintenance Schedule")
+            if pool_schedule:
+                st.session_state.convenience_seeker_info['pool_schedule'] = pool_schedule
+                progress += increment; bar10.progress(progress)
+
+            pool_access = st.text_input("How do the pool maintenance service typically gain access to the home (e.g., key, alarm code, security access)?")
+            if pool_access: 
+                st.session_state.convenience_seeker_info['pool_access'] = pool_access
+                progress += increment; bar10.progress(progress)
+            
+            pool_finish_steps = st.text_area("What steps are taken when the pool maintenance service finishes (e.g., locking up, securing the home)?")
+            if pool_finish_steps:
+                st.session_state.convenience_seeker_info['pool_finish_steps']= pool_finish_steps
+                progress += increment; bar10.progress(progress)
+            
+            pool_identity_confirmation = st.text_area("How do you confirm the identity or legitimacy of the pool maintenance crew when they arrive (e.g. ID, references)?")
+            if pool_identity_confirmation:
+                st.session_state.convenience_seeker_info['pool_identity_confirmation'] =pool_identity_confirmation
+                progress += increment; bar10.progress(progress)
+        
+        st.session_state.convenience_seeker_info['convenience_seeker_options'] = convenience_seeker_options
+
             
         
 
