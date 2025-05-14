@@ -988,6 +988,41 @@ def emergency_kit():
         ('Yes', 'No')  # Options to display in the dropdown menu
     )
 
+    if emergency_kit_status == 'Yes':
+            st.write("Emergency Kit Info")
+            progress = 0
+            increment = 25
+            bar17 = st.progress(progress)
+            
+            emergency_kit_location = st.text_area("Where is the Emergency Kit located?")
+            if emergency_kit_location:
+                st.session_state.emergency_kit_info['emergency_kit_location'] = emergency_kit_location
+                progress += increment; bar17.progress(progress)  
+
+            homeowner_kit_stock = st.multiselect("Select all included in your well-stocked emergency kit.",
+            ["Flashlights and extra batteries", "First aid kit", "Non-perishable food and bottled water", "Medications and personal hygiene items", "Important documents (insurance, identification)", "Battery-powered or hand-crank radio", "Whistle (for signaling)", "Dust masks (for air filtration", "Local maps and contact lists"]
+            )
+
+            # Initialize flashlight storage in session state if needed
+            if 'flashlight_storage' not in st.session_state:
+                st.session_state.flashlight_storage = None
+
+            # Logic: Ask for location if included, warn if not
+            if "Flashlights and extra batteries" not in homeowner_kit_stock:
+                st.write("Flashlights and extra batteries")
+                flashlight_location = st.text_input(
+                    "Where are the flashlights and extra batteries stored?",
+                    value=st.session_state.flashlight_storage or "",
+                    placeholder="E.g. Top drawer in the hallway closet"
+                )
+                if flashlight_location:
+                    st.session_state.flashlight_storage = flashlight_location
+                    st.success(f"📦 Flashlights and batteries stored at: {flashlight_location}")
+                else:
+                    st.warning("⚠️ Consider adding flashlights and extra batteries to your emergency kit.")
+                    st.session_state.flashlight_storage = None  # Clear it if item is removed
+        
+        
 if __name__ == "__main__":
     main()
 
