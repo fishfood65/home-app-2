@@ -75,7 +75,7 @@ def main():
             if section == "Level 2":
                 mail_trash_handling()
             elif section == "Level 3":
-                security_convenience()
+                security_convenience_ownership()
 
 def home():
     st.subheader("Level 1: 🏡 Home")
@@ -639,10 +639,11 @@ def trash_handling():
             if image_bytes:
                 st.image(Image.open(io.BytesIO(image_bytes)), caption=label)
 
-def security_convenience():
+def security_convenience_ownership():
     st.subheader("Level 3: Security, Privacy, and Quality-Oriented")
     home_security()
     convenience_seeker()
+    rent_own()
 
 def home_security():
     st.write("Security-Conscious")
@@ -828,8 +829,149 @@ def convenience_seeker():
         
         st.session_state.convenience_seeker_info['convenience_seeker_options'] = convenience_seeker_options
 
+def rent_own():
+    st.write("Home Ownership Status")
+
+    # Use st.selectbox to create a dropdown menu for selecting between renting or owning
+    housing_status = st.selectbox(
+        'Do you rent or own your home?',  # Label for the widget
+        ('Select an option', 'Rent', 'Own')  # Options to display in the dropdown menu
+    )  
+
+    if housing_status == 'Rent':
+            st.write("Property Management Info")
+            progress = 0
+            increment = 25
+            bar11 = st.progress(progress)
+
+            property_management_name = st.text_input("Name of the Property Management Company")
+            if property_management_name:
+                st.session_state.rent_own_info['property_management_name'] = property_management_name
+                progress += increment; bar11.progress(progress)     
+
+            property_management_number = st.text_input("Number for the Property Management Company")
+            if property_management_number:
+                st.session_state.rent_own_info['property_management_number'] = property_management_number
+                progress += increment; bar11.progress(progress)   
+
+            property_management_email = st.text_input("Email for the Property Management Company")
+            if property_management_email:
+                st.session_state.rent_own_info['property_management_email'] = property_management_email
+                progress += increment; bar11.progress(progress) 
+
+            property_management_description = st.text_area("When to Contact Property Management Company", placeholder="E.g. Roof issues, leaking pipe, common areas issues, parking challenges, etc..")
+            if property_management_description:
+                st.session_state.rent_own_info['property_management_description'] = property_management_description
+                progress += increment; bar11.progress(progress)
+  
+    elif housing_status == 'Own':
+            st.write("Homowner Contacts Info")
+
+            homeowner_contacts_options = st.multiselect("Select all the serivce contacts that are applicable.",
+            ["Handyman/Contractor", "Electrician", "Exterminator", "Plumber", "HOA", "None" ]
+            )     
+
+            if 'Handyman/Contractor' in homeowner_contacts_options:
+                st.write("Handyman/Contractor Info")
+                progress = 0
+                increment = 33
+                bar12 = st.progress(progress) 
+                
+                handyman_name = st.text_input("Name of the Handyman/Contractor")
+                if handyman_name:
+                    st.session_state.rent_own_info['handyman_name'] = handyman_name
+                    progress += increment; bar12.progress(progress)     
+
+                handyman_number = st.text_input("Number for the Handyman/Contractor")
+                if handyman_number:
+                    st.session_state.rent_own_info['handyman_number'] = handyman_number
+                    progress += increment; bar12.progress(progress)   
             
-        
+                handyman_description = st.text_area("When to Contact Handyman/Contractor", placeholder="E.g. Door jammed, windows stuck, garbage disposal stopped working etc...")
+                if handyman_description: progress += increment; bar12.progress(progress)
+           
+            if 'Electrician' in homeowner_contacts_options:
+                st.write("Electrician")
+                progress = 0
+                increment = 33
+                bar13 = st.progress(progress) 
+                
+                electrician_name = st.text_input("Name of the Electrician")
+                if electrician_name:
+                    st.session_state.rent_own_info['electrician_name'] = electrician_name
+                    progress += increment; bar13.progress(progress)     
+
+                electrician_number = st.text_input("Number for the Electrician")
+                if electrician_number:
+                    st.session_state.rent_own_info['electrician_name'] = electrician_number
+                    progress += increment; bar13.progress(progress)   
+            
+                electrician_description = st.text_area("When to contact the Electrician?", placeholder="E.g. Heater not working, A/C not working, Electrical outlets stopped workingetc...")
+                if electrician_description: progress += increment; bar13.progress(progress)
+
+            if 'Exterminator' in homeowner_contacts_options:
+                st.write("Exterminator")
+                progress = 0
+                increment = 33
+                bar14 = st.progress(progress) 
+                
+                exterminator_name = st.text_input("Name of the Exterminator")
+                if exterminator_name:
+                    st.session_state.rent_own_info['exterminator_name'] = exterminator_name
+                    progress += increment; bar14.progress(progress)     
+
+                exterminator_number = st.text_input("Number for the Exterminator")
+                if exterminator_number:
+                    st.session_state.rent_own_info['exterminator_name'] = exterminator_number
+                    progress += increment; bar14.progress(progress)   
+            
+                exterminator_description = st.text_area("When to contact the Exterminator?", placeholder="E.g. Heater not working, A/C not working, Electrical outlets stopped working, etc...")
+                if exterminator_description: progress += increment; bar14.progress(progress)
+
+            if 'Plumber' in homeowner_contacts_options:
+                st.write("Plumber")
+                progress = 0
+                increment = 33
+                bar15 = st.progress(progress) 
+                
+                plumber_name = st.text_input("Name of the Plumber")
+                if plumber_name:
+                    st.session_state.rent_own_info['plumber_name'] = plumber_name
+                    progress += increment; bar15.progress(progress)     
+
+                plumber_number = st.text_input("Number for the Plumber")
+                if plumber_number:
+                    st.session_state.rent_own_info['plumber_name'] = plumber_number
+                    progress += increment; bar15.progress(progress)   
+            
+                plumber_description = st.text_area("When to contact the Plumber?", placeholder="E.g. Toilet clogged, drain clogged, garbage disposal stopped working, etc...")
+                if plumber_description: progress += increment; bar15.progress(progress)
+
+            if 'HOA' in homeowner_contacts_options:
+                st.write("HOA")
+                progress = 0
+                increment = 25
+                bar16 = st.progress(progress)
+                
+                property_management_name = st.text_input("Name of the Property Management Company")
+                if property_management_name:
+                    st.session_state.rent_own_info['property_management_name'] = property_management_name
+                    progress += increment; bar16.progress(progress)     
+
+                property_management_number = st.text_input("Number for the Property Management Company")
+                if property_management_number:
+                    st.session_state.rent_own_info['property_management_number'] = property_management_number
+                    progress += increment; bar16.progress(progress)   
+
+                property_management_email = st.text_input("Email for the Property Management Company")
+                if property_management_email:
+                    st.session_state.rent_own_info['property_management_email'] = property_management_email
+                    progress += increment; bar16.progress(progress) 
+
+                property_management_description = st.text_area("When to Contact Property Management Company", placeholder="E.g. Roof issues, leaking pipe, common areas issues, parking challenges, etc..")
+                if property_management_description:
+                    st.session_state.rent_own_info['property_management_description'] = property_management_description
+                    progress += increment; bar16.progress(progress)
 
 if __name__ == "__main__":
     main()
