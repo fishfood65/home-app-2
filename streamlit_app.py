@@ -76,6 +76,7 @@ def main():
     elif st.session_state.section == "Level 2":
         st.subheader("🔧 Level 2 Tools")
     # Add Level 2 content here
+        emergency_kit()
 
     elif st.session_state.section == "Level 3":
         st.subheader("📊 Level 3 Data")
@@ -307,17 +308,132 @@ For each provider, retrieve:
 Ensure the run book is clearly formatted using Markdown, with bold headers and bullet points. Use ⚠️ to highlight missing kit items.
 """.strip()
 
-def format_output_for_docx(output: str) -> str:
-    """Formats markdown-like output to docx-friendly HTML-style tags."""
-    if not output:
-        return ""
-    
-    formatted_text = output
-    formatted_text = re.sub(r"^## (.*)", r"\n\n\1\n", formatted_text, flags=re.MULTILINE)
-    formatted_text = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", formatted_text)
-    formatted_text = re.sub(r"\*(.*?)\*", r"<i>\1</i>", formatted_text)
+#### Emergency Kit + Utilities Prompt ####
 
-    return formatted_text
+def emergency_kit_utilities_runbook_prompt(
+            city=st.session_state.get("city", ""),
+            zip_code=st.session_state.get("zip_code", ""),
+            internet_provider_name=st.session_state.get("internet_provider",""),
+            electricity_provider_name=st.session_state.get("electricity_provider",""),
+            natural_gas_provider_name=st.session_state.get("natural_gas_provider",""),
+            water_provider_name=st.session_state.get("water_provider",""),
+            emergency_kit_status=st.session_state.get("emergency_kit_status", "No"),
+            emergency_kit_location=st.session_state.get("emergency_kit_location", ""),
+            selected_items=st.session_state.get("homeowner_kit_stock", []),
+            flashlights_info=st.session_state.get("flashlights_info", ""),
+            radio_info=st.session_state.get("radio_info", ""),
+            food_water_info=st.session_state.get("food_water_info", ""),
+            important_docs_info=st.session_state.get("important_docs_info", ""),
+            whistle_info=st.session_state.get("whistle_info", ""),
+            medications_info=st.session_state.get("medications_info", ""),
+            mask_info=st.session_state.get("mask_info", ""),
+            maps_contacts_info=st.session_state.get("maps_contacts_info", "")
+            ):
+
+    return f"""
+You are an expert assistant generating a city-specific Emergency Preparedness Run Book. First, search the internet for up-to-date local utility providers and their emergency contact information. Then, compose a comprehensive, easy-to-follow guide customized for residents of City: {city}, Zip Code: {zip_code}.
+
+Start by identifying the following utility/service providers for the specified location:
+- Internet Provider Name
+- Electricity Provider Name
+- Natural Gas Provider Name
+- Water Provider Name
+
+For each provider, retrieve:
+- Company Description
+- Customer Service Phone Number
+- Customer Service Address (if available)
+- Official Website
+- Emergency Contact Numbers (specific to outages, leaks, service disruptions)
+- Steps to report issues
+
+In each section, include any user-supplied emergency kit items relevant to that emergency, such as flashlights, radios, water, documents, and medications. Indicate their availability and location.
+
+---
+
+### 🧰 Emergency Kit Summary
+
+- Has Emergency Kit: {emergency_kit_status}
+- Kit Location: {emergency_kit_location}
+
+**Kit Inventory:**
+{selected_items}
+
+---
+
+### 📕 Emergency Run Book
+
+#### ⚡ 1. Electricity – {electricity_provider_name}
+- Provider Description
+- Customer Service
+- Website
+- Emergency Contact
+
+**Power Outage Response Guide:**
+- Steps to follow
+- How to report
+- Safety precautions
+- **Recommended Kit Items**:
+  - {flashlights_info}
+  - {radio_info}
+  - {food_water_info}
+  - {important_docs_info}
+
+---
+
+#### 🔥 2. Natural Gas – {natural_gas_provider_name}
+- Provider Description
+- Customer Service
+- Website
+- Emergency Contact
+
+**Gas Leak Response Guide:**
+- Signs and precautions
+- How to evacuate
+- How to report
+- **Recommended Kit Items**:
+  - {whistle_info}
+  - {important_docs_info}
+  - {flashlights_info}
+
+---
+
+#### 💧 3. Water – {water_provider_name}
+- Provider Description
+- Customer Service
+- Website
+- Emergency Contact
+
+**Water Outage or Leak Guide:**
+- Detection steps
+- Shutoff procedure
+- **Recommended Kit Items**:
+  - {food_water_info}
+  - {medications_info}
+  - {mask_info}
+  - {important_docs_info}
+
+---
+
+#### 🌐 4. Internet – {internet_provider_name}
+- Provider Description
+- Customer Service
+- Website
+- Emergency Contact
+
+**Internet Outage Response Guide:**
+- Troubleshooting
+- Reporting
+- Staying informed
+- **Recommended Kit Items**:
+  - {radio_info}
+  - {maps_contacts_info}
+  - {important_docs_info}
+
+---
+
+Ensure the run book is clearly formatted using Markdown, with bold headers and bullet points. Use ⚠️ to highlight missing kit items.
+""".strip()
 
 ###### Main Functions that comprise of the Levels
 
@@ -386,7 +502,133 @@ def home():
         doc_filename="home_utilities_emergency.docx"
     )
 
-### Level 2 - Home
+### Level 2 - Emergency Kit Details
+
+# Define the homeowner_kit_stock function
+def homeowner_kit_stock():
+    kit_items = [
+        "Flashlights and extra batteries",
+        "First aid kit",
+        "Non-perishable food and bottled water",
+        "Medications and personal hygiene items",
+        "Important documents (insurance, identification)",
+        "Battery-powered or hand-crank radio",
+        "Whistle (for signaling)",
+        "Dust masks (for air filtration)",
+        "Local maps and contact lists"
+    ]
+
+    # Initialize all session state variables to None
+    for item in kit_items:
+        key = item.lower().replace(" ", "_").replace("(", "").replace(")", "") + "_storage"
+        if key not in st.session_state:
+            st.session_state[key] = None
+
+    with st.form(key='emergency_kit_form'):
+        selected_items = st.multiselect(
+            "Select all you have:",
+            kit_items
+        )
+        submit_button = st.form_submit_button(label='Submit')
+
+    if submit_button:
+        not_selected_items = [item for item in kit_items if item not in selected_items]
+
+        if not_selected_items:
+            st.warning("⚠️ Consider adding the following items to your emergency kit:")
+            for item in not_selected_items:
+                st.write(f"- {item}")
+
+        # Update session state
+        for item in kit_items:
+            key = item.lower().replace(" ", "_").replace("(", "").replace(")", "") + "_storage"
+            if item in selected_items:
+                st.session_state[key] = item
+            else:
+                st.session_state[key] = None
+
+    return selected_items
+
+def emergency_kit():
+    st.write("Emergency Kit Status")
+
+    # Use st.radio to create a dropdown menu for selecting between renting or owning
+    emergency_kit_status = st.radio(
+        'Do you have an Emergency Kit?',  # Label for the widget
+        ('Yes', 'No')  # Options to display in the dropdown menu
+    )
+
+    kit_items = [
+        "Flashlights and extra batteries",
+        "First aid kit",
+        "Non-perishable food and bottled water",
+        "Medications and personal hygiene items",
+        "Important documents (insurance, identification)",
+        "Battery-powered or hand-crank radio",
+        "Whistle (for signaling)",
+        "Dust masks (for air filtration)",
+        "Local maps and contact lists"
+    ]
+
+    if emergency_kit_status == 'Yes':
+        st.write("Emergency Kit Info")
+        st.success('This is a success message!', icon=":material/medical_services:")
+        st.session_state['emergency_kit_status'] = emergency_kit_status
+
+        emergency_kit_location = st.text_area("Where is the Emergency Kit located?")
+        if emergency_kit_location:
+            st.session_state['emergency_kit_location'] = emergency_kit_location
+
+        # Call the homeowner_kit_stock function and get the selected items
+        selected_items = homeowner_kit_stock()
+        if selected_items:
+            st.session_state['homeowner_kit_stock'] = selected_items
+
+        # Determine not selected items
+        not_selected_items = [item for item in kit_items if item not in selected_items]
+        st.session_state['not_selected_items'] = not_selected_items
+
+    else:
+        st.write("Emergency Kit Info")
+        st.warning("⚠️ Let's build your emergency kit with what you have.")
+
+        emergency_kit_location = st.text_area("Where do you want to put your emergency kit items?")
+        if emergency_kit_location:
+            st.session_state['emergency_kit_location'] = emergency_kit_location
+
+        # Call the homeowner_kit_stock function and get the selected items
+        selected_items = homeowner_kit_stock()
+        if selected_items:
+            st.session_state['homeowner_kit_stock'] = selected_items
+
+        # Determine not selected items
+        not_selected_items = [item for item in kit_items if item not in selected_items]
+        st.session_state['not_selected_items'] = not_selected_items
+
+        st.success("📦 Emergency Kit Built!")
+
+    return not_selected_items
+
+def emergency_kit_utilities():
+    st.subheader("Level 2: 🏥 Emergency Kit")
+    emergency_kit()
+    emergency_utilities_runbook_prompt()
+    
+    with st.expander("Confirm Level 2 AI Prompt Preview by Selecting the button inside"):
+        user_confirmation = st.checkbox("Show Level 2 AI Prompt")
+        if user_confirmation:
+            prompt = build_emergency_runbook_prompt(
+            city=st.session_state.get("city", ""),
+            zip_code=st.session_state.get("zip_code", ""),
+            internet_provider_name=st.session_state.get("internet_provider", ""),
+            electricity_provider_name=st.session_state.get("electricity_provider", ""),
+            natural_gas_provider_name=st.session_state.get("gas_provider", ""),
+            water_provider_name=st.session_state.get("water_provider", ""),
+            emergency_kit_status=st.session_state.get("emergency_kit_status", "No"),
+            emergency_kit_location=st.session_state.get("emergency_kit_location", ""),
+            selected_items=st.session_state.get("homeowner_kit_stock", [])
+            )
+            st.code(prompt, language="markdown")
 
 ### Call App Functions
 if __name__ == "__main__":
