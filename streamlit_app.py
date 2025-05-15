@@ -6,10 +6,12 @@ import os
 import pandas as pd
 from datetime import datetime, timedelta
 from docx import Document
+from docx.text.run import Run
 import re
 import time
 from PIL import Image
 import io
+import uuid
 
 st.set_page_config(
     page_title="Hello",
@@ -76,7 +78,7 @@ def main():
     elif st.session_state.section == "Level 2":
         st.subheader("🔧 Level 2 Tools")
     # Add Level 2 content here
-        emergency_kit()
+        emergency_kit_utilities()
 
     elif st.session_state.section == "Level 3":
         st.subheader("📊 Level 3 Data")
@@ -95,74 +97,74 @@ def main():
     # Add Bonus Level content here
 
 #### Reusable Functions to Generate and Format Runbooks #####
+def format_output_for_docx(output: str) -> str:
+    """Formats markdown-like output to docx-friendly text."""
+    if not output:
+        return ""
+    formatted_text = re.sub(r"^## (.*)", r"\n\n\1\n", output, flags=re.MULTILINE)
+    formatted_text = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", formatted_text)
+    formatted_text = re.sub(r"\*(.*?)\*", r"<i>\1</i>", formatted_text)
+    return formatted_text
 
 def generate_runbook_from_prompt(
     prompt: str,
     api_key: str,
-    button_text: str = "Generate Runbook",
-    doc_heading: str = "Emergency Runbook",
-    doc_filename: str = "runbook.docx"
+    button_text: str,
+    doc_heading: str,
+    doc_filename: str
 ):
     """
     Reusable Streamlit function to handle LLM completion and export a DOCX file.
-
-    Args:
-        prompt (str): The input prompt for Mistral.
-        api_key (str): Your Mistral API key.
-        button_text (str): Label for the Streamlit button.
-        doc_heading (str): Heading used in the generated DOCX.
-        doc_filename (str): Name of the DOCX file for download.
     """
-    if st.button(button_text):
-        # Optional user confirmation from session_state or UI
-        if st.session_state.get("user_confirmation", True):  # default to True if not set
-            try:
-                client = Mistral(api_key=api_key)
+    unique_key = f"{button_text.lower().replace(' ', '_')}_button"
+    clicked = st.button(button_text, key=unique_key)
 
+    # Debug section
+    #st.write("🔍 Debug info:")
+    #st.write("- Button clicked:", clicked)
+    #st.write("- user_confirmation:", st.session_state.get("user_confirmation"))
+    #st.write("- Prompt present:", bool(prompt))
+    #st.write("📋 Session State:", dict(st.session_state))
+
+    if clicked:
+        st.write("✅ Button was clicked")
+
+        if st.session_state.get("user_confirmation") and prompt:
+            try:
+                st.write("⏳ Sending to Mistral...")
+
+                client = Mistral(api_key=api_key)
                 completion = client.chat.complete(
                     model="mistral-small-latest",
-                    messages=[{"role": "user", "content": prompt}],
+                    messages=[UserMessage(content=prompt)],
                     max_tokens=1500,
                     temperature=0.5,
                 )
 
                 output = completion.choices[0].message.content
-                output_text = output if isinstance(output, str) else str(output)
-
                 st.success(f"{doc_heading} generated successfully!")
-                st.write(output_text)
+                st.write(output)
 
-                # Format and write to DOCX
+                formatted_output = format_output_for_docx(output)
+
                 doc = Document()
                 doc.add_heading(doc_heading, 0)
-                formatted_output = format_output_for_docx(output_text)
                 doc.add_paragraph(formatted_output)
                 doc.save(doc_filename)
 
-                with open(doc_filename, "rb") as file:
+                with open(doc_filename, "rb") as f:
                     st.download_button(
                         label="📄 Download DOCX",
-                        data=file,
+                        data=f,
                         file_name=doc_filename,
                         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     )
 
             except Exception as e:
-                st.error(f"⚠️ Error generating runbook: {str(e)}")
+                st.error(f"❌ Failed to generate runbook: {str(e)}")
+
         else:
-            st.warning("⚠️ Please confirm the AI prompt before generating the runbook.")
-
-def format_output_for_docx(output: str) -> str:
-    """Formats markdown-like output to docx-friendly HTML-style tags."""
-    if not output:
-        return ""
-    
-    formatted_text = output
-    formatted_text = re.sub(r"^## (.*)", r"\n\n\1\n", formatted_text, flags=re.MULTILINE)
-    formatted_text = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", formatted_text)
-    formatted_text = re.sub(r"\*(.*?)\*", r"<i>\1</i>", formatted_text)
-
-    return formatted_text
+            st.warning("⚠️ Prompt not confirmed or missing.")
 
 #### Prompts Here #####
 
@@ -320,6 +322,7 @@ def emergency_kit_utilities_runbook_prompt(
             emergency_kit_status=st.session_state.get("emergency_kit_status", "No"),
             emergency_kit_location=st.session_state.get("emergency_kit_location", ""),
             selected_items=st.session_state.get("homeowner_kit_stock", []),
+            not_selected_items=st.session_state.get("homeowner_kit_stock", []),
             flashlights_info=st.session_state.get("flashlights_info", ""),
             radio_info=st.session_state.get("radio_info", ""),
             food_water_info=st.session_state.get("food_water_info", ""),
@@ -347,17 +350,23 @@ For each provider, retrieve:
 - Emergency Contact Numbers (specific to outages, leaks, service disruptions)
 - Steps to report issues
 
-In each section, include any user-supplied emergency kit items relevant to that emergency, such as flashlights, radios, water, documents, and medications. Indicate their availability and location.
+For Emergency Kit Summary, if {emergency_kit_status} is Yes, then write that the emergency kit is available and where it's located using {emergency_kit_location}, if {emergency_kit_status} is No then write the Emergency kit is a work in progress and will be located using {emergency_kit_location}.
+
+Retrieve Emergency contact informtion for local:
+- Police
+- Fire Department
+- Hospital
+- Posion Control
 
 ---
 
 ### 🧰 Emergency Kit Summary
 
-- Has Emergency Kit: {emergency_kit_status}
-- Kit Location: {emergency_kit_location}
-
 **Kit Inventory:**
 {selected_items}
+
+**"⚠️ Consider adding the following items to your emergency kit:"
+{not_selected_items}
 
 ---
 
@@ -439,6 +448,19 @@ Ensure the run book is clearly formatted using Markdown, with bold headers and b
 
 ### Leve 1 - Home
 
+def home_debug():
+
+    st.write("🟡 About to render runbook button")
+
+    generate_runbook_from_prompt(
+        prompt=st.session_state.get("generated_prompt", ""),
+        api_key=os.getenv("MISTRAL_TOKEN"),
+        button_text="Complete Level 1 Mission",
+        doc_heading="Home Utilities Emergency Runbook",
+        doc_filename="home_utilities_emergency.docx"
+    )
+    st.write("🟢 After button render")
+
 def home():
     st.write("Let's gather some information. Please enter your details:")
 
@@ -475,17 +497,29 @@ def home():
         st.success("Utility providers updated!")
 
     # Step 3: Preview prompt
-    with st.expander("Confirm AI Prompt Preview by Selecting the button inside"):
-        user_confirmation = st.checkbox("Show AI Prompt")
-        st.session_state["user_confirmation"] = user_confirmation  # store confirmation in session
+    # Move this outside the expander
+    user_confirmation = st.checkbox("✅ Confirm AI Prompt")
+    st.session_state["user_confirmation"] = user_confirmation # store confirmation in session
 
-        if user_confirmation:
-            prompt = utilities_emergency_runbook_prompt()
-            st.code(prompt, language="markdown")
-            st.session_state["generated_prompt"] = prompt  # Save for use below
+    if user_confirmation:
+        prompt = utilities_emergency_runbook_prompt()
+        st.session_state["generated_prompt"] = prompt
+    else:
+        st.session_state["generated_prompt"] = None
+
+# Show prompt in expander
+    with st.expander("AI Prompt Preview (Optional)"):
+        if st.session_state.get("generated_prompt"):
+            st.code(st.session_state["generated_prompt"], language="markdown")
 
     # Step 4: Generate runbook using reusable function
     st.write("Next, click the button to generate your personalized utilities emergency runbook document:")
+    
+    if not st.session_state.get("generated_prompt"):
+        st.warning("⚠️ Prompt not ready. Please confirm the prompt first.")
+        return
+    
+    #st.write("Prompt preview (sanity check):", st.session_state.get("generated_prompt", "[Empty]"))
 
     generate_runbook_from_prompt(
         prompt=st.session_state.get("generated_prompt", ""),
@@ -494,6 +528,12 @@ def home():
         doc_heading="Home Utilities Emergency Runbook",
         doc_filename="home_utilities_emergency.docx"
     )
+    #st.write("🧪 Debug Info:")
+    #st.write("Prompt exists:", "Yes" if st.session_state.get("generated_prompt") else "No")
+    #st.write("User confirmed:", st.session_state.get("user_confirmation"))
+    #st.write("Prompt:", st.session_state.get("generated_prompt"))
+    #st.write("API key loaded:", "Yes" if os.getenv("MISTRAL_TOKEN") else "No")
+
 
 ### Level 2 - Emergency Kit Details
 
@@ -608,21 +648,21 @@ def emergency_kit_utilities():
     emergency_kit()
     
     # Step 2: Preview prompt
-    with st.expander("Confirm AI Prompt Preview by Selecting the button inside"):
-        user_confirmation = st.checkbox("Show AI Prompt")
-        st.session_state["user_confirmation"] = user_confirmation  # store confirmation in session
 
-        if user_confirmation:
-            prompt = utilities_emergency_runbook_prompt(
-                city=st.session_state.get("city", ""),
-                zip_code=st.session_state.get("zip_code", ""),
-                internet_provider_name=st.session_state.get("internet_provider", ""),
-                electricity_provider_name=st.session_state.get("electricity_provider", ""),
-                natural_gas_provider_name=st.session_state.get("natural_gas_provider", ""),
-                water_provider_name=st.session_state.get("water_provider", "")
-            )
-            st.code(prompt, language="markdown")
-            st.session_state["generated_prompt"] = prompt  # Save for use below
+    # Move this outside the expander
+    user_confirmation = st.checkbox("✅ Confirm AI Prompt")
+    st.session_state["user_confirmation"] = user_confirmation # store confirmation in session
+
+    if user_confirmation:
+        prompt = emergency_kit_utilities_runbook_prompt()
+        st.session_state["generated_prompt"] = prompt
+    else:
+        st.session_state["generated_prompt"] = None
+
+# Show prompt in expander
+    with st.expander("AI Prompt Preview (Optional)"):
+        if st.session_state.get("generated_prompt"):
+            st.code(st.session_state["generated_prompt"], language="markdown")
 
     # Step 3: Generate runbook using reusable function
     st.write("Next, click the button to generate your personalized utilities emergency runbook document:")
@@ -631,27 +671,9 @@ def emergency_kit_utilities():
         prompt=st.session_state.get("generated_prompt", ""),
         api_key=os.getenv("MISTRAL_TOKEN"),
         button_text="Complete Level 2 Mission",
-        doc_heading="Home Emergency Runbook",
-        doc_filename="home_utilities_emergency_kit.docx"
+        doc_heading="Home Emergency Runbook With Emergency Kit Summary",
+        doc_filename="home_util_emergency_kit.docx"
     )
-
-    with st.expander("Confirm Level 2 AI Prompt Preview by Selecting the button inside"):
-        user_confirmation = st.checkbox("Show Level 2 AI Prompt")
-        if user_confirmation:
-            prompt = emergency_kit_utilities_runbook_prompt()
-            st.code(prompt, language="markdown")
-
-    # Step 4: Generate runbook using reusable function
-    st.write("Next, click the button to generate your personalized utilities emergency runbook document:")
-
-    generate_runbook_from_prompt(
-        prompt=st.session_state.get("generated_prompt", ""),
-        api_key=os.getenv("MISTRAL_TOKEN"),
-        button_text="Complete Level 2 Mission",
-        doc_heading="Home Emergency Runbook",
-        doc_filename="home_utilities_emergency_kit.docx"
-    )
-
 ### Call App Functions
 if __name__ == "__main__":
     main()
