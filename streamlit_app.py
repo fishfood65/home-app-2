@@ -93,6 +93,78 @@ def main():
         st.subheader("🎁 Bonus Level Content")
     # Add Bonus Level content here
 
+#### Reusable Functions to Generate and Format Runbooks #####
+
+def generate_runbook_from_prompt(
+    prompt: str,
+    api_key: str,
+    button_text: str = "Generate Runbook",
+    doc_heading: str = "Emergency Runbook",
+    doc_filename: str = "runbook.docx"
+):
+    """
+    Reusable Streamlit function to handle LLM completion and export a DOCX file.
+
+    Args:
+        prompt (str): The input prompt for Mistral.
+        api_key (str): Your Mistral API key.
+        button_text (str): Label for the Streamlit button.
+        doc_heading (str): Heading used in the generated DOCX.
+        doc_filename (str): Name of the DOCX file for download.
+    """
+    if st.button(button_text):
+        # Optional user confirmation from session_state or UI
+        if st.session_state.get("user_confirmation", True):  # default to True if not set
+            try:
+                client = Mistral(api_key=api_key)
+
+                completion = client.chat.complete(
+                    model="mistral-small-latest",
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=1500,
+                    temperature=0.5,
+                )
+
+                output = completion.choices[0].message.content
+                output_text = output if isinstance(output, str) else str(output)
+
+                st.success(f"{doc_heading} generated successfully!")
+                st.write(output_text)
+
+                # Format and write to DOCX
+                doc = Document()
+                doc.add_heading(doc_heading, 0)
+                formatted_output = format_output_for_docx(output_text)
+                doc.add_paragraph(formatted_output)
+                doc.save(doc_filename)
+
+                with open(doc_filename, "rb") as file:
+                    st.download_button(
+                        label="📄 Download DOCX",
+                        data=file,
+                        file_name=doc_filename,
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
+
+            except Exception as e:
+                st.error(f"⚠️ Error generating runbook: {str(e)}")
+        else:
+            st.warning("⚠️ Please confirm the AI prompt before generating the runbook.")
+
+def format_output_for_docx(output: str) -> str:
+    """Formats markdown-like output to docx-friendly HTML-style tags."""
+    if not output:
+        return ""
+    
+    formatted_text = output
+    formatted_text = re.sub(r"^## (.*)", r"\n\n\1\n", formatted_text, flags=re.MULTILINE)
+    formatted_text = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", formatted_text)
+    formatted_text = re.sub(r"\*(.*?)\*", r"<i>\1</i>", formatted_text)
+
+    return formatted_text
+
+#### Prompts Here #####
+
 def query_utility_providers():
     """
     Queries Mistral AI for public utility providers based on city and ZIP code 
@@ -235,25 +307,39 @@ For each provider, retrieve:
 Ensure the run book is clearly formatted using Markdown, with bold headers and bullet points. Use ⚠️ to highlight missing kit items.
 """.strip()
 
+def format_output_for_docx(output: str) -> str:
+    """Formats markdown-like output to docx-friendly HTML-style tags."""
+    if not output:
+        return ""
+    
+    formatted_text = output
+    formatted_text = re.sub(r"^## (.*)", r"\n\n\1\n", formatted_text, flags=re.MULTILINE)
+    formatted_text = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", formatted_text)
+    formatted_text = re.sub(r"\*(.*?)\*", r"<i>\1</i>", formatted_text)
+
+    return formatted_text
+
+###### Main Functions that comprise of the Levels
+
+### Leve 1 - Home
+
 def home():
     st.write("Let's gather some information. Please enter your details:")
 
+    # Input fields
     st.session_state.city = st.text_input("City", value=st.session_state.get("city", ""))
     st.session_state.zip_code = st.text_input("ZIP Code", value=st.session_state.get("zip_code", ""))
     st.session_state.internet_provider = st.text_input("Internet Provider", value=st.session_state.get("internet_provider", ""))
 
+    # Step 1: Fetch utility providers
     if st.button("Find My Utility Providers"):
         with st.spinner("Fetching providers from Mistral..."):
             results = query_utility_providers()
-
             st.success("Providers stored in session state!")
-    # Display the current utility providers
-    #st.write("Electricity Provider:", st.session_state.electricity_provider)
-    #st.write("Natural Gas Provider:", st.session_state.natural_gas_provider)
-    #st.write("Water Provider:", st.session_state.water_provider)
 
-    # Allow users to correct utility providers
+    # Step 2: Allow corrections
     st.write("Correct Utility Providers:")
+
     correct_electricity = st.checkbox("Correct Electricity Provider", value=False)
     corrected_electricity = st.text_input("Electricity Provider", value=st.session_state.get("electricity_provider", ""), disabled=not correct_electricity)
 
@@ -272,84 +358,36 @@ def home():
             st.session_state["water_provider"] = corrected_water
         st.success("Utility providers updated!")
 
-#Call prompt function
+    # Step 3: Preview prompt
     with st.expander("Confirm AI Prompt Preview by Selecting the button inside"):
         user_confirmation = st.checkbox("Show AI Prompt")
+        st.session_state["user_confirmation"] = user_confirmation  # store confirmation in session
+
         if user_confirmation:
             prompt = utilities_emergency_runbook_prompt(
+                city=st.session_state.get("city", ""),
+                zip_code=st.session_state.get("zip_code", ""),
+                internet_provider_name=st.session_state.get("internet_provider", ""),
+                electricity_provider_name=st.session_state.get("electricity_provider", ""),
+                natural_gas_provider_name=st.session_state.get("natural_gas_provider", ""),
+                water_provider_name=st.session_state.get("water_provider", "")
             )
             st.code(prompt, language="markdown")
+            st.session_state["generated_prompt"] = prompt  # Save for use below
 
-# Generate comprehensive output using Mistral API
-    st.write ("Next, Click the button to generate your persoanlized utlities emergency run book document")
+    # Step 4: Generate runbook using reusable function
+    st.write("Next, click the button to generate your personalized utilities emergency runbook document:")
 
-    # Function to process the output for formatting (e.g., apply bold, italics, headings)
-    def process_output_for_formatting(output):
-    # Example processing: bold headings or text wrapped in markdown-style asterisks
-        formatted_text = ""
-    # Replace markdown-like headings (e.g., ## Heading) with docx headings
-        formatted_text = re.sub(r"^## (.*)", r"\n\n\1\n", output)
-    
-    # Replace markdown-like bold (e.g., **bold**)
-        formatted_text = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", formatted_text)
-    
-    # Replace markdown-like italics (e.g., *italic*)
-        formatted_text = re.sub(r"\*(.*?)\*", r"<i>\1</i>", formatted_text)
-    
-        return formatted_text
+    generate_runbook_from_prompt(
+        prompt=st.session_state.get("generated_prompt", ""),
+        api_key=os.getenv("MISTRAL_TOKEN"),
+        button_text="Complete Level 1 Mission",
+        doc_heading="Home Utilities Emergency Runbook",
+        doc_filename="home_utilities_emergency.docx"
+    )
 
-    if st.button("Complete Level 1 Mission"):
-        if user_confirmation:
-        # Use Mistral for model inference
-            client = Mistral(api_key=api_key)
-        
-        # Define the prompt as a "chat" message format
-        completion = client.chat.complete(
-            model="mistral-small-latest",  # Specify the model ID
-            messages=[  # Pass a message format similar to a conversation
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=1500,  # Set the max tokens
-            temperature=0.5,  # Control the randomness of the output
-        )
-        
-        # Access the content from the 'AssistantMessage' object using the .content attribute
-        output = completion.choices[0].message.content # Access the generated message
-        
-        # Convert `output` to string if it's not already a string
-        if isinstance(output, str):
-            output_text = output
-        else:
-            # If output is an object, extract its string representation
-            output_text = str(output)  # You can also try accessing specific attributes if needed
-        
-        st.success("Emergency utilities run book generated successfully! Mission Accomplished.")
-        st.write(output_text)
+### Level 2 - Home
 
-        # Create a DOCX file from the output text
-        doc = Document()
-        doc.add_heading('Home Utilities Emergency Runbook', 0)
-        
-        # Process and add formatted output to the document
-        # Example: preserve line breaks and formatting in output
-        formatted_output = process_output_for_formatting(output)
-        doc.add_paragraph(formatted_output)
-    
-
-        # Save DOCX to a temporary file
-        doc_filename = "home_utilities_emergency.docx"
-        doc.save(doc_filename)
-
-        # Provide a download button for the DOCX file
-        with open(doc_filename, "rb") as doc_file:
-            st.download_button(
-                label="Download Runbook as DOCX",
-                data=doc_file,
-                file_name=doc_filename,
-                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            )
-    else:
-        st.warning("Please confirm the AI prompt before generating the runbook.")
-
+### Call App Functions
 if __name__ == "__main__":
     main()
