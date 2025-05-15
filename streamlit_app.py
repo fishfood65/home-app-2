@@ -29,6 +29,24 @@ st.markdown(
     ### Start your Training!
     """
     )
+# Generate the AI prompt
+api_key = os.getenv("MISTRAL_TOKEN")
+client = Mistral(api_key=api_key)
+
+if not api_key:
+    api_key = st.text_input("Enter your Mistral API key:", type="password")
+
+if api_key:
+    st.success("API key successfully loaded.")
+else:
+   st.error("API key is not set.")
+
+   # Display environment variables in the Streamlit app
+#st.title("Environment Variables")
+
+# Display all environment variables
+#env_vars = "\n".join([f"{key}: {value}" for key, value in os.environ.items()])
+#st.text(env_vars)
 
 # Main entry point of the app
 def main():
@@ -332,25 +350,6 @@ def home():
             )
     else:
         st.warning("Please confirm the AI prompt before generating the runbook.")
-
-# Generate the AI prompt
-api_key = os.getenv("MISTRAL_TOKEN")
-client = Mistral(api_key=api_key)
-
-if not api_key:
-    api_key = st.text_input("Enter your Mistral API key:", type="password")
-
-if api_key:
-    st.success("API key successfully loaded.")
-else:
-   st.error("API key is not set.")
-
-   # Display environment variables in the Streamlit app
-#st.title("Environment Variables")
-
-# Display all environment variables
-#env_vars = "\n".join([f"{key}: {value}" for key, value in os.environ.items()])
-#st.text(env_vars)
 
 if __name__ == "__main__":
     main()
