@@ -47,7 +47,7 @@ def main():
     )
 
 # Display the selected section
-    st.write(f"### You selected: {st.session_state.section}")
+    #st.write(f"### You selected: {st.session_state.section}")
 
 # Conditional content rendering
     if st.session_state.section == "Level 1":
@@ -150,43 +150,38 @@ def home():
             results = query_utility_providers()
 
             st.success("Providers stored in session state!")
+    # Display the current utility providers
+    #st.write("Electricity Provider:", st.session_state.electricity_provider)
+    #st.write("Natural Gas Provider:", st.session_state.natural_gas_provider)
+    #st.write("Water Provider:", st.session_state.water_provider)
 
-            st.write("Electricity Provider:", st.session_state.electricity_provider)
-            st.write("Natural Gas Provider:", st.session_state.natural_gas_provider)
-            st.write("Water Provider:", st.session_state.water_provider)
+    # Allow users to correct utility providers
+    st.write("Correct Utility Providers:")
+    correct_electricity = st.checkbox("Correct Electricity Provider", value=False)
+    corrected_electricity = st.text_input("Electricity Provider", value=st.session_state.get("electricity_provider", ""), disabled=not correct_electricity)
 
+    correct_natural_gas = st.checkbox("Correct Natural Gas Provider", value=False)
+    corrected_natural_gas = st.text_input("Natural Gas Provider", value=st.session_state.get("natural_gas_provider", ""), disabled=not correct_natural_gas)
 
-st.subheader("Level 1: Trainee")
+    correct_water = st.checkbox("Correct Water Provider", value=False)
+    corrected_water = st.text_input("Water Provider", value=st.session_state.get("water_provider", ""), disabled=not correct_water)
 
-#st.write("Let's gather some information. Please enter your details:")
-st.write("Let's gather some information. Please enter your details:")
-
-
-# Generate the AI prompt
-api_key = os.getenv("MISTRAL_TOKEN")
-client = Mistral(api_key=api_key)
-
-if not api_key:
-    api_key = st.text_input("Enter your Mistral API key:", type="password")
-
-if api_key:
-    st.success("API key successfully loaded.")
-else:
-   st.error("API key is not set.")
-
-   # Display environment variables in the Streamlit app
-#st.title("Environment Variables")
-
-# Display all environment variables
-#env_vars = "\n".join([f"{key}: {value}" for key, value in os.environ.items()])
-#st.text(env_vars)
-
-with st.expander("Confirm AI Prompt Preview by Selecting the button inside"):
-    user_confirmation = st.checkbox("Show AI Prompt")
-    if user_confirmation:
-        prompt = f"""
-        Compose a comprehensive, step-by-step emergency run book for residents of City:{city} Zip Code:{zip_code} with Internet Provider:{internet_provider}, with a focus on guiding users through power outages, gas leaks, water leaks/outages, and internet service disruptions. Include the following details for each utility and service provider:
-        1. **Electricity (<electricity_provider_name>):**
+    if st.button("Save Utility Providers"):
+        if correct_electricity:
+            st.session_state["electricity_provider"] = corrected_electricity
+        if correct_natural_gas:
+            st.session_state["natural_gas_provider"] = corrected_natural_gas
+        if correct_water:
+            st.session_state["water_provider"] = corrected_water
+        st.success("Utility providers updated!")
+        
+#need to update code to make the prompt a function
+    with st.expander("Confirm AI Prompt Preview by Selecting the button inside"):
+        user_confirmation = st.checkbox("Show AI Prompt")
+        if user_confirmation:
+            prompt = f"""
+             Compose a comprehensive, step-by-step emergency run book for residents of City:{city} Zip Code:{zip_code} with Internet Provider:{internet_provider}, with a focus on guiding users through power outages, gas leaks, water leaks/outages, and internet service disruptions. Include the following details for each utility and service provider:
+            1. **Electricity (<electricity_provider_name>):**
          - Description of the company and services
          - Customer service number and address
          - Official website
@@ -218,10 +213,10 @@ with st.expander("Confirm AI Prompt Preview by Selecting the button inside"):
             
             Please replace <city>, <zip_code>, <internet_provider> and placeholders like <electricity_provider_name>, etc., with the actual information for the specified city and zip code. 
             """
-        st.code(prompt)
+            st.code(prompt)
 
 # Generate comprehensive output using Mistral API
-st.write ("Next, Click the button to generate your persoanlized utlities emergency run book document")
+    st.write ("Next, Click the button to generate your persoanlized utlities emergency run book document")
 
 # Function to process the output for formatting (e.g., apply bold, italics, headings)
 def process_output_for_formatting(output):
@@ -238,10 +233,10 @@ def process_output_for_formatting(output):
     
     return formatted_text
 
-if st.button("Complete Level 1 Mission"):
-    if user_confirmation:
+    if st.button("Complete Level 1 Mission"):
+        if user_confirmation:
         # Use Mistral for model inference
-        client = Mistral(api_key=api_key)
+            client = Mistral(api_key=api_key)
         
         # Define the prompt as a "chat" message format
         completion = client.chat.complete(
@@ -290,6 +285,26 @@ if st.button("Complete Level 1 Mission"):
             )
     else:
         st.warning("Please confirm the AI prompt before generating the runbook.")
+
+# Generate the AI prompt
+api_key = os.getenv("MISTRAL_TOKEN")
+client = Mistral(api_key=api_key)
+
+if not api_key:
+    api_key = st.text_input("Enter your Mistral API key:", type="password")
+
+if api_key:
+    st.success("API key successfully loaded.")
+else:
+   st.error("API key is not set.")
+
+   # Display environment variables in the Streamlit app
+#st.title("Environment Variables")
+
+# Display all environment variables
+#env_vars = "\n".join([f"{key}: {value}" for key, value in os.environ.items()])
+#st.text(env_vars)
+
 
 if __name__ == "__main__":
     main()
