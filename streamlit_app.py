@@ -2,7 +2,7 @@ import streamlit as st
 import re
 from mistralai import Mistral
 from mistralai.client import MistralClient
-from mistralai.models.chat_completion import ChatMessage
+#from mistralai.models.chat_completion import ChatMessage
 from dotenv import load_dotenv
 import os
 import pandas as pd
@@ -77,7 +77,7 @@ def main():
         st.subheader("🎁 Bonus Level Content")
     # Add Bonus Level content here
 
-def query_utility_providers(api_key):
+def query_utility_providers():
     """
     Queries Mistral AI for public utility providers based on city and ZIP code 
     stored in st.session_state. Stores and returns results in session state.
@@ -109,7 +109,7 @@ Water Provider: <company name>
 """
 
     try:
-        response = api_key.chat.complete(
+        response = client.chat.complete(
             model="mistral-small-latest",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=1500,
@@ -137,6 +137,7 @@ Water Provider: <company name>
         "natural_gas": natural_gas,
         "water": water
     }
+
 
 
 def home(api_key):

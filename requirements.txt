@@ -19,7 +19,7 @@ jsonschema==4.23.0
 jsonschema-specifications==2024.10.1
 lxml==5.3.1
 MarkupSafe==3.0.2
-mistralai==1.6.0
+mistralai
 narwhals==1.32.0
 numpy==2.2.4
 packaging==24.2
