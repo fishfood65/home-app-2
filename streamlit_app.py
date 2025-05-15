@@ -118,6 +118,7 @@ def main():
 
     elif section == "Level 3":
         st.subheader("📊 Level 3 Data")
+        mail_trash_handling()
 
     elif section == "Level 4":
         st.subheader("🧠 Level 4 Analysis")
@@ -716,6 +717,316 @@ def emergency_kit_utilities():
         doc_heading="Home Emergency Runbook With Emergency Kit Summary",
         doc_filename="home_util_emergency_kit.docx"
     )
+##### Level 3 - Mail Handling and Trash
+
+def mail():
+    st.subheader("📬 Mail Handling Instructions")
+
+    if 'mail_info' not in st.session_state:
+        st.session_state.mail_info = {}
+
+    with st.expander("Mail Handling", expanded=True):
+        # Input fields
+        mailbox_location = st.text_area(
+            "📍 Mailbox Location",
+            placeholder="E.g., 'At the end of the driveway on the left side.'"
+        )
+
+        mailbox_key = st.text_area(
+            "🔑 Mailbox Key (Optional)",
+            placeholder="E.g., 'Hanging on the key hook next to the fridge.'"
+        )
+
+        pick_up_schedule = st.text_area(
+            "📆 Mail Pick-Up Schedule",
+            placeholder="E.g., 'Every other day' or 'Mondays and Thursdays'"
+        )
+
+        what_to_do_with_mail = st.text_area(
+            "📥 What to Do with the Mail",
+            placeholder="E.g., 'Place it in the tray on the kitchen counter.'"
+        )
+
+        What_to_do_with_packages = st.text_area(
+            "📦 Packages",
+            placeholder="E.g., 'Place it inside the entryway closet.'"
+        )
+
+        # Dynamic progress bar based on completion
+        completed = sum([
+            bool(mailbox_location),
+            bool(mailbox_key),
+            bool(pick_up_schedule),
+            bool(what_to_do_with_mail),
+            bool(What_to_do_with_packages)
+        ])
+        progress = int((completed / 5) * 100)
+        st.progress(progress)
+
+        # Save button
+        if st.button("✅ Mail Handling 100% Complete. Click to Save"):
+            st.session_state.mail_info = {
+                "Mailbox Location": mailbox_location,
+                "Mailbox Key": mailbox_key,
+                "Pick-Up Schedule": pick_up_schedule,
+                "What to Do with the Mail": what_to_do_with_mail,
+                "Packages": What_to_do_with_packages
+            }
+            st.success("Mail handling instructions saved successfully!")
+
+    # Display saved info
+    st.subheader("📂 Saved Mail Handling Information")
+    if st.session_state.mail_info:
+        with st.expander("📋 Review Saved Info", expanded=True):
+            for key, value in st.session_state.mail_info.items():
+                st.markdown(f"**{key}:** {value}")
+    else:
+        st.info("No mail handling information saved yet.")
+
+def trash_handling():
+    st.markdown("## 🗑️ Trash Disposal Instructions")
+
+    if 'trash_info' not in st.session_state:
+        st.session_state.trash_info = {}
+    if 'trash_images' not in st.session_state:
+        st.session_state.trash_images = {}
+
+    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    times = ["Morning", "Afternoon", "Evening"]
+
+    # --- Indoor Trash Info ---
+    with st.expander("Kitchen and Bath Trash Details", expanded=True):
+        st.markdown("##### Fill in the kitchen and bathroom trash info")
+
+        kitchen_bin_location = st.text_area(
+            "Kitchen Trash Bin Location", 
+            placeholder="E.g. Under the kitchen sink"
+        )
+
+        bathroom_bin_location = st.text_area(
+            "Bathroom Trash Bin Location", 
+            placeholder="E.g. Near the toilet"
+        )
+
+        trash_bag_type = st.text_area(
+            "Trash Bag Type & Location", 
+            placeholder="E.g. Black bags in pantry"
+        )
+
+        emptying_schedule = st.text_area(
+            "Emptying Schedule", 
+            placeholder="E.g. Empty every night"
+        )
+
+        replacement_instructions = st.text_area(
+            "Replacing Trash Bags", 
+            placeholder="E.g. Replace bag when full"
+        )
+
+    # --- Outdoor Bin Info ---
+    with st.expander("Outdoor Bin Details", expanded=True):
+        st.markdown("##### Outdoor Bin Handling Details")
+
+        bin_destination = st.text_area(
+            "Where to Empty the Trash Bins", 
+            placeholder="E.g. By the curb on pickup day"
+        )
+
+        bin_description = st.text_area(
+            "What the Outdoor Trash Bins Look Like", 
+            placeholder="E.g. Green with lid"
+        )
+
+        bin_location_specifics = st.text_area(
+            "Specific Location or Instructions for Outdoor Bins", 
+            placeholder="E.g. Next to side gate"
+        )
+
+        # Image upload helper
+        def handle_image(label, display_name):
+            image_key = f"{label} Image"
+            if image_key not in st.session_state.trash_images:
+                st.session_state.trash_images[image_key] = None
+
+            if st.session_state.trash_images[image_key]:
+                st.image(Image.open(io.BytesIO(st.session_state.trash_images[image_key])), caption=display_name)
+                if st.button(f"Delete {display_name}", key=f"delete_{label}"):
+                    st.session_state.trash_images[image_key] = None
+                    st.experimental_rerun()
+            else:
+                uploaded = st.file_uploader(f"Upload a photo of the {display_name}", type=["jpg", "jpeg", "png"], key=f"{label}_upload")
+                if uploaded:
+                    st.session_state.trash_images[image_key] = uploaded.read()
+                    st.success(f"{display_name} image uploaded.")
+                    st.experimental_rerun()
+
+        handle_image("Outdoor Bin", "Outdoor Trash Bin")
+        handle_image("Recycling Bin", "Recycling Bin")
+
+    # --- Collection Schedule ---
+    with st.expander("Collection Schedule", expanded=True):
+        st.markdown("##### Enter your trash and recycling schedule")
+       
+       #Collection Day + Time Pickers
+        trash_day = st.selectbox("Garbage Pickup Day", days)
+        trash_time = st.selectbox("Garbage Pickup Time", times)
+        recycling_day = st.selectbox("Recycling Pickup Day", days)
+        recycling_time = st.selectbox("Recycling Pickup Time", times)
+
+        bin_handling_instructions = st.text_area("Instructions for Placing and Returning Outdoor Bins")
+
+    # --- Common Disposal Area ---
+    with st.expander("Common Disposal Area (if applicable)", expanded=True):
+        st.markdown("##### Shared disposal area details")
+        uses_common_disposal = st.checkbox("Is there a common disposal area?")
+
+        if uses_common_disposal:
+            common_area_instructions = st.text_area(
+                "Instructions for Common Disposal Area", 
+                placeholder="E.g. Dumpster in alley"
+            )
+            if common_area_instructions:
+                handle_image("Common Area", "Common Disposal Area")
+
+    # --- Composting ---
+    with st.expander("Composting Instructions (if applicable)", expanded=True):
+        st.markdown("##### Composting info")
+        compost_applicable = st.checkbox("Is composting used?")
+
+        if compost_applicable:
+            compost_instructions = st.text_area(
+                "Compost Instructions", 
+                placeholder="E.g. Put organics in green bin"
+            )
+
+    # --- Waste Management Contact ---
+    with st.expander("Waste Management Contact Info", expanded=True):
+        st.markdown("##### Company contact details")
+
+        wm_name = st.text_input(
+            "Waste Management Company Name", 
+            placeholder="E.g. WastePro"
+        )
+        wm_phone = st.text_input(
+            "Contact Phone Number", 
+            placeholder="E.g. (123) 456-7890"
+            )
+        wm_description = st.text_area(
+            "When to Contact", 
+            placeholder="E.g. Missed pickup or billing issues"
+            )
+
+# Dynamic progress bar based on completion
+        total_sections = 6  # or 7 if compost is enabled
+        filled_sections = sum([
+            bool(kitchen_bin_location),
+            bool(bathroom_bin_location),
+            bool(trash_bag_type),
+            bool(emptying_schedule),
+            bool(replacement_instructions),
+            bool(bin_destination),
+            bool(bin_description),
+            bool(bin_location_specifics),
+            bool(trash_day),
+            bool(trash_time),
+            bool(recycling_day),
+            bool(recycling_time),
+            bool(wm_name),
+            bool(wm_phone),
+            bool(wm_description),
+            compost_applicable and bool(compost_instructions),
+            uses_common_disposal and bool(common_area_instructions),
+        ])
+
+        total_progress = int((filled_sections / 16) * 100)
+        st.progress(total_progress)
+
+    # --- Save Button ---
+    if st.button("✅ Trash Handling 100% Complete. Click to Save"):
+        st.session_state.trash_info = {
+            "indoor": {
+                "kitchen_bin_location": kitchen_bin_location,
+                "bathroom_bin_location": bathroom_bin_location,
+                "trash_bag_type": trash_bag_type,
+                "emptying_schedule": emptying_schedule,
+                "replacement_instructions": replacement_instructions
+            },
+            "outdoor": {
+                "bin_destination": bin_destination,
+                "bin_description": bin_description,
+                "bin_location_specifics": bin_location_specifics,
+                "bin_handling_instructions": bin_handling_instructions
+            },
+            "schedule": {
+                "trash_day": trash_day,
+                "trash_time": trash_time,
+                "recycling_day": recycling_day,
+                "recycling_time": recycling_time
+            },
+            "composting": {
+                "compost_used": compost_applicable,
+                "compost_instructions": compost_instructions if compost_applicable else "N/A"
+            },
+            "common_disposal": {
+                "uses_common_disposal": uses_common_disposal,
+                "common_area_instructions": common_area_instructions if uses_common_disposal else "N/A"
+            },
+            "waste_management": {
+                "company_name": wm_name,
+                "phone": wm_phone,
+                "description": wm_description
+            }
+    }
+
+    st.session_state.progress["trash_completed"] = True
+    save_progress(st.session_state.progress)
+
+    st.success("All trash handling instructions saved successfully!")
+
+    # --- Display saved info and uploaded images ---
+    if st.session_state.trash_info:
+        st.markdown("### ✅ Saved Trash Handling Information")
+        for key, value in st.session_state.trash_info.items():
+            st.write(f"**{key}**: {value}")
+
+    if st.session_state.trash_images:
+        st.write("🖼️ Uploaded Photos")
+        for label, image_bytes in st.session_state.trash_images.items():
+            if image_bytes:
+                st.image(Image.open(io.BytesIO(image_bytes)), caption=label)
+
+def mail_trash_handling():
+# Step 1: Input fields
+    mail ()
+    trash_handling()
+    # Step 2: Preview prompt
+
+    # Move this outside the expander
+    user_confirmation = st.checkbox("✅ Confirm AI Prompt")
+    st.session_state["user_confirmation"] = user_confirmation # store confirmation in session
+
+    if user_confirmation:
+        prompt = emergency_mail_trash_runbook_prompt()
+        st.session_state["generated_prompt"] = prompt
+    else:
+        st.session_state["generated_prompt"] = None
+
+# Show prompt in expander
+    with st.expander("AI Prompt Preview (Optional)"):
+        if st.session_state.get("generated_prompt"):
+            st.code(st.session_state["generated_prompt"], language="markdown")
+
+    # Step 3: Generate runbook using reusable function
+    st.write("Next, click the button to generate your personalized utilities emergency runbook document:")
+
+    generate_runbook_from_prompt(
+        prompt=st.session_state.get("generated_prompt", ""),
+        api_key=os.getenv("MISTRAL_TOKEN"),
+        button_text="Complete Level 3 Mission",
+        doc_heading="Home Emergency Runbook for Cartakers and Guests",
+        doc_filename="home_runbook_cartakers.docx"
+    )
+
 ### Call App Functions
 if __name__ == "__main__":
     main()
