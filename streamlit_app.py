@@ -136,7 +136,108 @@ Water Provider: <company name>
         "water": water
     }
 
+def utilities_emergency_runbook_prompt(
+            city=st.session_state.get("city", ""),
+            zip_code=st.session_state.get("zip_code", ""),
+            internet_provider_name=st.session_state.get("internet_provider",""),
+            electricity_provider_name=st.session_state.get("electricity_provider",""),
+            natural_gas_provider_name=st.session_state.get("natural_gas_provider",""),
+            water_provider_name=st.session_state.get("water_provider","")
+            #emergency_kit_status=st.session_state.get("emergency_kit_status", "No"),
+            #emergency_kit_location=st.session_state.emergency_kit_info.get("emergency_kit_location", ""),
+            #selected_items=st.session_state.emergency_kit_info.get("homeowner_kit_stock", []),
+            #flashlights_info=st.session_state.get("flashlights_info", ""),
+            #radio_info=st.session_state.get("radio_info", ""),
+            #food_water_info=st.session_state.get("food_water_info", ""),
+            #important_docs_info=st.session_state.get("important_docs_info", ""),
+            #whistle_info=st.session_state.get("whistle_info", ""),
+            #medications_info=st.session_state.get("medications_info", ""),
+            #mask_info=st.session_state.get("mask_info", ""),
+            #maps_contacts_info=st.session_state.get("maps_contacts_info", ""),
+            #item_locations={
+               # "flashlight_storage": st.session_state.get("flashlight_storage", ""),
+               # "first_aid_storage": st.session_state.get("first_aid_storage", ""),
+               # "food_water_storage": st.session_state.get("food_water_storage", ""),
+               # "medications_storage": st.session_state.get("medications_storage", ""),
+                #"important_doc_storage": st.session_state.get("important_doc_storage", ""),
+               # "radio_storage": st.session_state.get("radio_storage", ""),
+               # "whistle_storage": st.session_state.get("whistle_storage", ""),
+               # "mask_storage": st.session_state.get("mask_storage", ""),
+               # "maps_contacts_storage": st.session_state.get("maps_contacts_storage", "")
+            #}
+        ):
 
+    return f"""
+You are an expert assistant generating a city-specific Emergency Preparedness Run Book. First, search the internet for up-to-date local utility providers and their emergency contact information. Then, compose a comprehensive, easy-to-follow guide customized for residents of City: {city}, Zip Code: {zip_code}.
+
+Start by identifying the following utility/service providers for the specified location:
+- Internet Provider Name
+- Electricity Provider Name
+- Natural Gas Provider Name
+- Water Provider Name
+
+For each provider, retrieve:
+- Company Description
+- Customer Service Phone Number
+- Customer Service Address (if available)
+- Official Website
+- Emergency Contact Numbers (specific to outages, leaks, service disruptions)
+- Steps to report issues
+
+---
+
+
+### 📕 Emergency Run Book
+
+#### ⚡ 1. Electricity – {electricity_provider_name}
+- Provider Description
+- Customer Service
+- Website
+- Emergency Contact
+
+**Power Outage Response Guide:**
+- Steps to follow
+- How to report
+- Safety precautions
+
+---
+#### 🔥 2. Natural Gas – {natural_gas_provider_name}
+- Provider Description
+- Customer Service
+- Website
+- Emergency Contact
+
+**Gas Leak Response Guide:**
+- Signs and precautions
+- How to evacuate
+- How to report
+
+---
+#### 💧 3. Water – {water_provider_name}
+- Provider Description
+- Customer Service
+- Website
+- Emergency Contact
+
+**Water Outage or Leak Guide:**
+- Detection steps
+- Shutoff procedure
+
+---
+#### 🌐 4. Internet – {internet_provider_name}
+- Provider Description
+- Customer Service
+- Website
+- Emergency Contact
+
+**Internet Outage Response Guide:**
+- Troubleshooting
+- Reporting
+- Staying informed
+---
+
+Ensure the run book is clearly formatted using Markdown, with bold headers and bullet points. Use ⚠️ to highlight missing kit items.
+""".strip()
 
 def home():
     st.write("Let's gather some information. Please enter your details:")
@@ -174,64 +275,32 @@ def home():
         if correct_water:
             st.session_state["water_provider"] = corrected_water
         st.success("Utility providers updated!")
-        
-#need to update code to make the prompt a function
+
+#Call prompt function
     with st.expander("Confirm AI Prompt Preview by Selecting the button inside"):
         user_confirmation = st.checkbox("Show AI Prompt")
         if user_confirmation:
-            prompt = f"""
-             Compose a comprehensive, step-by-step emergency run book for residents of City:{city} Zip Code:{zip_code} with Internet Provider:{internet_provider}, with a focus on guiding users through power outages, gas leaks, water leaks/outages, and internet service disruptions. Include the following details for each utility and service provider:
-            1. **Electricity (<electricity_provider_name>):**
-         - Description of the company and services
-         - Customer service number and address
-         - Official website
-        - Emergency contact information for power outages and gas leaks
-        - Step-by-step guide on what to do during a power outage, including when and how to report it
-
-        2. **Natural Gas (<natural_gas_provider_name>):**
-        - Description of the company and services
-        - Customer service number and address
-        - Official website
-        - Emergency contact information for gas-related issues
-        - Step-by-step guide on what to do if you suspect a gas leak
-
-        3. **Water (<water_provider_name>):**
-        - Description of the company and services
-        - Customer service number and address
-        - Official website
-        - Emergency contact information for water outages and leaks
-        - Step-by-step guide on what to do during a water outage or leak
-
-        4. **Internet (<internet_provider_name>):**
-        - Description of the company and services
-        - Customer service number and address
-        - Official website
-        - Emergency contact information for internet outages
-        - Step-by-step guide on what to do during an internet outage
-
-        Ensure the run book is well-structured, easy to understand, and includes relevant links to official websites and resources. Format the response in a clear, step-by-step manner, with headings and bullet points for easy navigation.
-            
-            Please replace <city>, <zip_code>, <internet_provider> and placeholders like <electricity_provider_name>, etc., with the actual information for the specified city and zip code. 
-            """
-            st.code(prompt)
+            prompt = utilities_emergency_runbook_prompt(
+            )
+            st.code(prompt, language="markdown")
 
 # Generate comprehensive output using Mistral API
     st.write ("Next, Click the button to generate your persoanlized utlities emergency run book document")
 
-# Function to process the output for formatting (e.g., apply bold, italics, headings)
-def process_output_for_formatting(output):
+    # Function to process the output for formatting (e.g., apply bold, italics, headings)
+    def process_output_for_formatting(output):
     # Example processing: bold headings or text wrapped in markdown-style asterisks
-    formatted_text = ""
+        formatted_text = ""
     # Replace markdown-like headings (e.g., ## Heading) with docx headings
-    formatted_text = re.sub(r"^## (.*)", r"\n\n\1\n", output)
+        formatted_text = re.sub(r"^## (.*)", r"\n\n\1\n", output)
     
     # Replace markdown-like bold (e.g., **bold**)
-    formatted_text = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", formatted_text)
+        formatted_text = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", formatted_text)
     
     # Replace markdown-like italics (e.g., *italic*)
-    formatted_text = re.sub(r"\*(.*?)\*", r"<i>\1</i>", formatted_text)
+        formatted_text = re.sub(r"\*(.*?)\*", r"<i>\1</i>", formatted_text)
     
-    return formatted_text
+        return formatted_text
 
     if st.button("Complete Level 1 Mission"):
         if user_confirmation:
@@ -304,7 +373,6 @@ else:
 # Display all environment variables
 #env_vars = "\n".join([f"{key}: {value}" for key, value in os.environ.items()])
 #st.text(env_vars)
-
 
 if __name__ == "__main__":
     main()
