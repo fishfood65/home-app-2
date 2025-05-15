@@ -1,8 +1,6 @@
 import streamlit as st
 import re
-from mistralai import Mistral
-from mistralai.client import MistralClient
-#from mistralai.models.chat_completion import ChatMessage
+from mistralai import Mistral, UserMessage
 from dotenv import load_dotenv
 import os
 import pandas as pd
@@ -55,7 +53,7 @@ def main():
     if st.session_state.section == "Level 1":
         st.subheader("🏁 Welcome to Level 1")
     # Add Level 1 content here
-        home(api_key)
+        home()
 
     elif st.session_state.section == "Level 2":
         st.subheader("🔧 Level 2 Tools")
@@ -111,11 +109,11 @@ Water Provider: <company name>
     try:
         response = client.chat.complete(
             model="mistral-small-latest",
-            messages=[{"role": "user", "content": prompt}],
+            messages=[UserMessage(content=prompt)],
             max_tokens=1500,
             temperature=0.5,
         )
-        content = response.choices[0].message["content"]
+        content = response.choices[0].message.content
     except Exception as e:
         st.error(f"Error querying Mistral API: {str(e)}")
         content = ""
@@ -140,7 +138,7 @@ Water Provider: <company name>
 
 
 
-def home(api_key):
+def home():
     st.write("Let's gather some information. Please enter your details:")
 
     st.session_state.city = st.text_input("City", value=st.session_state.get("city", ""))
@@ -149,13 +147,13 @@ def home(api_key):
 
     if st.button("Find My Utility Providers"):
         with st.spinner("Fetching providers from Mistral..."):
-            results = query_utility_providers(api_key)
+            results = query_utility_providers()
 
             st.success("Providers stored in session state!")
 
-            st.write("🔌 Electricity Provider:", st.session_state.electricity_provider)
-            st.write("🔥 Natural Gas Provider:", st.session_state.natural_gas_provider)
-            st.write("🚰 Water Provider:", st.session_state.water_provider)
+            st.write("Electricity Provider:", st.session_state.electricity_provider)
+            st.write("Natural Gas Provider:", st.session_state.natural_gas_provider)
+            st.write("Water Provider:", st.session_state.water_provider)
 
 
 st.subheader("Level 1: Trainee")
@@ -166,7 +164,7 @@ st.write("Let's gather some information. Please enter your details:")
 
 # Generate the AI prompt
 api_key = os.getenv("MISTRAL_TOKEN")
-client = MistralClient(api_key=api_key)
+client = Mistral(api_key=api_key)
 
 if not api_key:
     api_key = st.text_input("Enter your Mistral API key:", type="password")
