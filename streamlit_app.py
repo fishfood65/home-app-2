@@ -206,6 +206,99 @@ def generate_runbook_from_prompt(
         else:
             st.warning("⚠️ Prompt not confirmed or missing.")
 
+def generate_runbook_from_prompt_split(
+    prompt_emergency: str,
+    prompt_mail_trash: str,
+    api_key: str,
+    button_text: str,
+    doc_heading: str,
+    doc_filename: str
+):
+    """
+    Calls Mistral API with two prompts: emergency/utilities and mail/trash.
+    Concatenates results and creates a formatted DOCX file.
+    """
+    unique_key = f"{button_text.lower().replace(' ', '_')}_button"
+    clicked = st.button(button_text, key=unique_key)
+
+    # 🔍 Debug Info
+    with st.expander("🧪 Debug Info (Prompt + State)"):
+        st.write("🔘 **Button Clicked:**", "✅ Yes" if clicked else "❌ No")
+        st.write("🙋 **User Confirmed Prompt:**", st.session_state.get("user_confirmation", False))
+        st.write("🔑 **API Key Loaded:**", "✅ Yes" if api_key else "❌ No")
+
+    # Check each prompt presence
+        st.write("📄 **Emergency Prompt Exists:**", "✅ Yes" if prompt_emergency else "❌ No")
+        if prompt_emergency:
+            st.code(prompt_emergency[:500] + "..." if len(prompt_emergency) > 500 else prompt_emergency, language="markdown")
+
+        st.write("📬 **Mail & Trash Prompt Exists:**", "✅ Yes" if prompt_mail_trash else "❌ No")
+        if prompt_mail_trash:
+            st.code(prompt_mail_trash[:500] + "..." if len(prompt_mail_trash) > 500 else prompt_mail_trash, language="markdown")
+
+    # Optionally display selected session state keys
+        st.write("📋 **Selected Session State Keys:**")
+        st.json({key: st.session_state.get(key) for key in [
+            "user_confirmation",
+            "electricity_provider",
+            "natural_gas_provider",
+            "water_provider",
+            "internet_provider",
+            "emergency_kit_status",
+            "emergency_kit_location"
+        ]})
+
+    if clicked:
+        st.write("✅ Button was clicked")
+
+        if not st.session_state.get("user_confirmation", False):
+            st.warning("⚠️ Please confirm the AI prompt before generating the runbook.")
+            return
+
+        try:
+            client = Mistral(api_key=api_key)
+
+            st.info("📡 Querying Mistral for Emergency & Utilities Section...")
+            emergency_response = client.chat.complete(
+                model="mistral-small-latest",
+                messages=[UserMessage(content=prompt_emergency)],
+                max_tokens=1500,
+                temperature=0.5,
+            ).choices[0].message.content
+
+            st.info("📬 Querying Mistral for Mail & Trash Section...")
+            mail_trash_response = client.chat.complete(
+                model="mistral-small-latest",
+                messages=[UserMessage(content=prompt_mail_trash)],
+                max_tokens=1000,
+                temperature=0.5,
+            ).choices[0].message.content
+
+            # Combine sections and format for DOCX
+            full_output = f"{emergency_response}\n\n{mail_trash_response}"
+            formatted_output = format_output_for_docx(full_output)
+
+            st.success(f"{doc_heading} generated successfully!")
+            st.write(full_output)
+
+            # Write to DOCX
+            doc = Document()
+            doc.add_heading(doc_heading, 0)
+            doc.add_paragraph(formatted_output)
+            doc.save(doc_filename)
+
+            # Download button
+            with open(doc_filename, "rb") as f:
+                st.download_button(
+                    label="📄 Download DOCX",
+                    data=f,
+                    file_name=doc_filename,
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
+
+        except Exception as e:
+            st.error(f"❌ Error generating runbook: {str(e)}")
+
 #### Prompts Here #####
 
 def query_utility_providers():
@@ -484,26 +577,8 @@ Retrieve Emergency contact informtion for local:
 Ensure the run book is clearly formatted using Markdown, with bold headers and bullet points. Use ⚠️ to highlight missing kit items.
 """.strip()
 
-#### Mail + Trash + Emergency Kit + Utilities Prompt ####
-def emergency_mail_trash_runbook_prompt():
-    city = st.session_state.get("city", "")
-    zip_code = st.session_state.get("zip_code", "")
-    internet_provider_name = st.session_state.get("internet_provider", "")
-    electricity_provider_name = st.session_state.get("electricity_provider", "")
-    natural_gas_provider_name = st.session_state.get("natural_gas_provider", "")
-    water_provider_name = st.session_state.get("water_provider", "")
-    emergency_kit_status = st.session_state.get("emergency_kit_status", "No")
-    emergency_kit_location = st.session_state.get("emergency_kit_location", "")
-    selected_items = st.session_state.get("homeowner_kit_stock", [])
-    not_selected_items = st.session_state.get("not_selected_items", [])
-    flashlights_info = st.session_state.get("flashlights_info", "")
-    radio_info = st.session_state.get("radio_info", "")
-    food_water_info = st.session_state.get("food_water_info", "")
-    important_docs_info = st.session_state.get("important_docs_info", "")
-    whistle_info = st.session_state.get("whistle_info", "")
-    medications_info = st.session_state.get("medications_info", "")
-    mask_info = st.session_state.get("mask_info", "")
-    maps_contacts_info = st.session_state.get("maps_contacts_info", "")
+#### Mail + Trash Prompt ####
+def mail_trash_runbook_prompt():
     mail_info = st.session_state.get("mail_info", {})
     mailbox_location = mail_info.get("Mailbox Location", "Not provided")
     mailbox_key = mail_info.get("Mailbox Key", "Not provided")
@@ -519,80 +594,32 @@ def emergency_mail_trash_runbook_prompt():
     wm = trash_info.get("waste_management", {})
 
     return f"""
-You are an expert assistant generating a city-specific Emergency Preparedness Run Book. Your task is to generate a detailed, easy-to-follow guide customized for residents of:
+You are an expert assistant generating Mail and Waste Management Run Book. Compose a comprehensive, easy-to-follow guide for house stitters and people watching the house when occupants are out of town. For any values set to No please omit thoses lines.
 
-- **City**: {city}
-- **Zip Code**: {zip_code}
+### 📕 Mail Handling and Waste Management Instructions 
 
----
-
-### 🔍 Step 1: Utility Provider Information
-
-Start by identifying the **primary utility/service providers** for the given location. For each of the following services:
-
-- Internet
-- Electricity
-- Natural Gas
-- Water
-
-Provide:
-- Company Description
-- Customer Service Phone Number
-- Customer Service Address (if available)
-- Official Website
-- Emergency Contact Numbers (specific to outages, leaks, or service disruptions)
-- Steps to report issues or emergencies
-
----
-
-### 🧰 Step 2: Emergency Kit Summary
-
-If **Emergency Kit Status** is "{emergency_kit_status}", include:
-- ✅ *Yes*: Indicate that the emergency kit is available and located at **{emergency_kit_location}**
-- ⚠️ *No*: Indicate that the kit is still in progress and will be stored at **{emergency_kit_location}**
-
-**Kit Inventory:**
-{selected_items}
-
-⚠️ **Consider adding the following items to the emergency kit**:
-{not_selected_items}
-
----
-
-### 🚓 Step 3: Local Emergency Contacts
-
-Retrieve and list local contact information for:
-- Police Department
-- Fire Department
-- Nearest Hospital or Emergency Room
-- Poison Control Center
-
----
-
-### 📬 Step 4: Mail Handling Instructions
+#### 📬 Mail Handling Instructions
 
 - **Mailbox Location**: {mailbox_location}
 - **Mailbox Key Info**: {mailbox_key}
 - **Pick-Up Schedule**: {pick_up_schedule}
 - **Mail Sorting Instructions**: {what_to_do_with_mail}
-- **Package Instructions**: {what_to_do_with_packages}
+- **Delivery Packages**: {what_to_do_with_packages}
 
 ---
 
-### 🗑️ Step 5: Trash & Recycling Instructions
+### 🗑️ Trash & Recycling Instructions
 
 **Indoor Trash**
-- Kitchen Trash Bin Location: {indoor.get("kitchen_bin_location", "Not provided")}
-- Bathroom Trash Bin Location: {indoor.get("bathroom_bin_location", "Not provided")}
-- Trash Bag Type & Storage: {indoor.get("trash_bag_type", "Not provided")}
-- Emptying Schedule: {indoor.get("emptying_schedule", "Not provided")}
-- Replacing Trash Bags: {indoor.get("replacement_instructions", "Not provided")}
+- Kitchen Trash: {indoor.get("kitchen_bin", "Not provided")}
+- Bathroom Trash: {indoor.get("bathroom_bin", "Not provided")}
+- Other Rooms Trash: {indoor.get("other_room_bin", "Not provided")}
 
 **Outdoor Bins**
-- Where to take bins: {outdoor.get("bin_destination", "Not provided")}
-- Description of bins: {outdoor.get("bin_description", "Not provided")}
-- Specific location/instructions: {outdoor.get("bin_location_specifics", "Not provided")}
-- Handling Instructions: {outdoor.get("bin_handling_instructions", "Not provided")}
+- Please take the bins: {outdoor.get("bin_destination", "Not provided")}
+- Bins Description: {outdoor.get("bin_description", "Not provided")}
+- Location: {outdoor.get("bin_location_specifics", "Not provided")}
+- Instructions: {outdoor.get("bin_handling_instructions", "Not provided")}
 
 **Collection Schedule**
 - Garbage Pickup: {schedule.get("trash_day", "Not provided")}, {schedule.get("trash_time", "Not provided")}
@@ -609,37 +636,7 @@ Retrieve and list local contact information for:
 **Waste Management Contact**
 - Company Name: {wm.get("company_name", "Not provided")}
 - Phone: {wm.get("phone", "Not provided")}
-- Contact Notes: {wm.get("description", "Not provided")}
-
----
-
-### 📕 Emergency Run Book
-
-#### ⚡ 1. Electricity – {electricity_provider_name}
-**Recommended Kit Items**:
-- {flashlights_info}
-- {radio_info}
-- {food_water_info}
-- {important_docs_info}
-
-#### 🔥 2. Natural Gas – {natural_gas_provider_name}
-**Recommended Kit Items**:
-- {whistle_info}
-- {important_docs_info}
-- {flashlights_info}
-
-#### 💧 3. Water – {water_provider_name}
-**Recommended Kit Items**:
-- {food_water_info}
-- {medications_info}
-- {mask_info}
-- {important_docs_info}
-
-#### 🌐 4. Internet – {internet_provider_name}
-**Recommended Kit Items**:
-- {radio_info}
-- {maps_contacts_info}
-- {important_docs_info}
+- Contact: {wm.get("description", "Not provided")}
 
 ---
 
@@ -859,6 +856,9 @@ def emergency_kit_utilities():
     user_confirmation = st.checkbox("✅ Confirm AI Prompt")
     st.session_state["user_confirmation"] = user_confirmation # store confirmation in session
 
+    st.session_state.progress["level_2_completed"] = True
+    save_progress(st.session_state.progress)
+
     if user_confirmation:
         prompt = emergency_kit_utilities_runbook_prompt()
         st.session_state["generated_prompt"] = prompt
@@ -961,29 +961,19 @@ def trash_handling():
     with st.expander("Kitchen and Bath Trash Details", expanded=True):
         st.markdown("##### Fill in the kitchen and bathroom trash info")
 
-        kitchen_bin_location = st.text_area(
-            "Kitchen Trash Bin Location", 
-            placeholder="E.g. Under the kitchen sink"
+        kitchen_bin = st.text_area(
+            "Kitchen Trash Bin Location, Emptying Schedule and Replacement Trash Bags", 
+            placeholder="E.g. Bin is located under the kitchen sink. Empty when full.  Bags are next to the bin. They are labeled kitchen bags."
         )
 
-        bathroom_bin_location = st.text_area(
-            "Bathroom Trash Bin Location", 
-            placeholder="E.g. Near the toilet"
+        bathroom_bin = st.text_area(
+            "Bathroom Trash Bin Emptying Schedule and Replacement Trash Bags ", 
+            placeholder="E.g. Empty before Trash day.  Bags are under the sink."
         )
 
-        trash_bag_type = st.text_area(
-            "Trash Bag Type & Location", 
-            placeholder="E.g. Black bags in pantry"
-        )
-
-        emptying_schedule = st.text_area(
-            "Emptying Schedule", 
-            placeholder="E.g. Empty every night"
-        )
-
-        replacement_instructions = st.text_area(
-            "Replacing Trash Bags", 
-            placeholder="E.g. Replace bag when full"
+        other_room_bin = st.text_area(
+            "Other Room Trash Bin Emptying Schedule and Replacement Trash Bags ", 
+            placeholder="E.g. Empty before Trash day.  Bags are under the sinks of each bathroom."
         )
 
     # --- Outdoor Bin Info ---
@@ -1082,11 +1072,9 @@ def trash_handling():
 # Dynamic progress bar based on completion
         total_sections = 6  # or 7 if compost is enabled
         filled_sections = sum([
-            bool(kitchen_bin_location),
-            bool(bathroom_bin_location),
-            bool(trash_bag_type),
-            bool(emptying_schedule),
-            bool(replacement_instructions),
+            bool(kitchen_bin),
+            bool(bathroom_bin),
+            bool(other_room_bin),
             bool(bin_destination),
             bool(bin_description),
             bool(bin_location_specifics),
@@ -1108,11 +1096,9 @@ def trash_handling():
     if st.button("✅ Trash Handling 100% Complete. Click to Save"):
         st.session_state.trash_info = {
             "indoor": {
-                "kitchen_bin_location": kitchen_bin_location,
-                "bathroom_bin_location": bathroom_bin_location,
-                "trash_bag_type": trash_bag_type,
-                "emptying_schedule": emptying_schedule,
-                "replacement_instructions": replacement_instructions
+                "kitchen_bin": kitchen_bin,
+                "bathroom_bin": bathroom_bin,
+                "other_room_bin": other_room_bin,
             },
             "outdoor": {
                 "bin_destination": bin_destination,
@@ -1166,27 +1152,51 @@ def mail_trash_handling():
     user_confirmation = st.checkbox("✅ Confirm AI Prompt")
     st.session_state["user_confirmation"] = user_confirmation # store confirmation in session
 
+    st.session_state.progress["level_3_completed"] = True
+    save_progress(st.session_state.progress)
+
     if user_confirmation:
-        prompt = emergency_mail_trash_runbook_prompt()
-        st.session_state["generated_prompt"] = prompt
+        prompt_emergency = emergency_kit_utilities_runbook_prompt()
+        prompt_mail_trash = mail_trash_runbook_prompt()
+        st.session_state["prompt_emergency"] = prompt_emergency
+        st.session_state["prompt_mail_trash"] = prompt_mail_trash
     else:
-        st.session_state["generated_prompt"] = None
+        st.session_state["prompt_emergency"] = None
+        st.session_state["prompt_mail_trash"] = None
 
 # Show prompt in expander
     with st.expander("AI Prompt Preview (Optional)"):
-        if st.session_state.get("generated_prompt"):
-            st.code(st.session_state["generated_prompt"], language="markdown")
+        if st.session_state.get("prompt_emergency"):
+            st.markdown("#### 🆘 Emergency + Utilities Prompt")
+            st.code(st.session_state["prompt_emergency"], language="markdown")
+        if st.session_state.get("prompt_mail_trash"):
+            st.markdown("#### 📬 Mail + Trash Prompt")
+            st.code(st.session_state["prompt_mail_trash"], language="markdown")
 
     # Step 3: Generate runbook using reusable function
     st.write("Next, click the button to generate your personalized utilities emergency runbook document:")
 
-    generate_runbook_from_prompt(
-        prompt=st.session_state.get("generated_prompt", ""),
+    st.markdown("### 🧪 Debug Info")
+
+    st.write("🔑 **API Key Loaded:**", "✅ Yes" if os.getenv("MISTRAL_TOKEN") else "❌ No")
+
+    st.write("✅ **User Confirmed Prompt:**", st.session_state.get("user_confirmation", False))
+
+    st.write("📄 **Emergency Prompt Exists:**", "✅ Yes" if st.session_state.get("prompt_emergency") else "❌ No")
+    st.code(st.session_state.get("prompt_emergency", "⚠️ Emergency prompt not generated."), language="markdown")
+
+    st.write("📬 **Mail & Trash Prompt Exists:**", "✅ Yes" if st.session_state.get("prompt_mail_trash") else "❌ No")
+    st.code(st.session_state.get("prompt_mail_trash", "⚠️ Mail/Trash prompt not generated."), language="markdown")
+
+    generate_runbook_from_prompt_split(
+        prompt_emergency=st.session_state.get("prompt_emergency", ""),
+        prompt_mail_trash=st.session_state.get("prompt_mail_trash", ""),
         api_key=os.getenv("MISTRAL_TOKEN"),
         button_text="Complete Level 3 Mission",
         doc_heading="Home Emergency Runbook for Cartakers and Guests",
         doc_filename="home_runbook_cartakers.docx"
     )
+
 
 ### Call App Functions
 if __name__ == "__main__":
