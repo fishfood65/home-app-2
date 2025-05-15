@@ -19,7 +19,7 @@ st.set_page_config(
 )
 
 st.write("# Welcome to Home Hero Academy! 👋")
-st.sidebar.success("Select a demo above.")
+
 st.markdown(
     """
     ### Your Mission
@@ -51,50 +51,87 @@ else:
 #st.text(env_vars)
 
 # Main entry point of the app
+import streamlit as st
+import json
+import os
+
+PROGRESS_FILE = "user_progress.json"
+
+def load_progress():
+    if os.path.exists(PROGRESS_FILE):
+        with open(PROGRESS_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+def save_progress(progress):
+    with open(PROGRESS_FILE, "w") as f:
+        json.dump(progress, f)
+
 def main():
-# Define available levels
     levels = ("Level 1", "Level 2", "Level 3", "Level 4", "Level 5", "Bonus Level")
 
-# Initialize session state with default section if not already set
+    # Initialize session state
     if "section" not in st.session_state:
         st.session_state.section = levels[0]
 
-# Sidebar radio button with session state support
-    st.session_state.section = st.sidebar.radio(
-    "Choose a Level:",
+    if "progress" not in st.session_state:
+        st.session_state.progress = load_progress()
+
+    # Sidebar navigation
+    selected = st.sidebar.radio(
+        "Choose a Level:",
         levels,
         index=levels.index(st.session_state.section)
     )
 
-# Display the selected section
-    #st.write(f"### You selected: {st.session_state.section}")
+    # Progress bar in sidebar
+    st.sidebar.markdown("## 🧭 Progress")
+    for i in range(1, 6):
+        key = f"level_{i}_completed"
+        label = f"Level {i}"
+        if st.session_state.progress.get(key):
+            st.sidebar.success(f"✅ {label}")
+        else:
+            st.sidebar.info(f"🔒 {label}")
 
-# Conditional content rendering
-    if st.session_state.section == "Level 1":
+    bonus = st.session_state.progress.get("bonus_completed", False)
+    st.sidebar.markdown("✅ Bonus Level" if bonus else "🔒 Bonus Level")
+
+    # Enforce Level 1 lock
+    if selected != "Level 1" and not st.session_state.progress.get("level_1_completed", False):
+        st.warning("🚧 Please complete Level 1 before accessing other levels.")
+        st.session_state.section = "Level 1"
+    else:
+        st.session_state.section = selected
+
+    # Render level
+    section = st.session_state.section
+
+    if section == "Level 1":
         st.subheader("🏁 Welcome to Level 1")
-    # Add Level 1 content here
-        home()
+        home()  # ← call logic here that sets progress and saves
 
-    elif st.session_state.section == "Level 2":
+    elif section == "Level 2":
         st.subheader("🔧 Level 2 Tools")
-    # Add Level 2 content here
         emergency_kit_utilities()
 
-    elif st.session_state.section == "Level 3":
+    elif section == "Level 3":
         st.subheader("📊 Level 3 Data")
-    # Add Level 3 content here
 
-    elif st.session_state.section == "Level 4":
+    elif section == "Level 4":
         st.subheader("🧠 Level 4 Analysis")
-    # Add Level 4 content here
 
-    elif st.session_state.section == "Level 5":
+    elif section == "Level 5":
         st.subheader("🚀 Level 5 Launch")
-    # Add Level 5 content here
 
-    elif st.session_state.section == "Bonus Level":
+    elif section == "Bonus Level":
         st.subheader("🎁 Bonus Level Content")
-    # Add Bonus Level content here
+
+    # Optional: Reset button
+    if st.sidebar.button("🔄 Reset Progress"):
+        st.session_state.progress = {}
+        save_progress({})
+        st.experimental_rerun()
 
 #### Reusable Functions to Generate and Format Runbooks #####
 def format_output_for_docx(output: str) -> str:
@@ -506,6 +543,10 @@ def home():
         st.session_state["generated_prompt"] = prompt
     else:
         st.session_state["generated_prompt"] = None
+
+    st.session_state.progress["level_1_completed"] = True
+    save_progress(st.session_state.progress)
+
 
 # Show prompt in expander
     with st.expander("AI Prompt Preview (Optional)"):
