@@ -122,6 +122,7 @@ def main():
 
     elif section == "Level 4":
         st.subheader("🧠 Level 4 Analysis")
+        mail_trash_handling()
 
     elif section == "Level 5":
         st.subheader("🚀 Level 5 Launch")
@@ -477,6 +478,168 @@ Retrieve Emergency contact informtion for local:
   - {radio_info}
   - {maps_contacts_info}
   - {important_docs_info}
+
+---
+
+Ensure the run book is clearly formatted using Markdown, with bold headers and bullet points. Use ⚠️ to highlight missing kit items.
+""".strip()
+
+#### Mail + Trash + Emergency Kit + Utilities Prompt ####
+def emergency_mail_trash_runbook_prompt():
+    city = st.session_state.get("city", "")
+    zip_code = st.session_state.get("zip_code", "")
+    internet_provider_name = st.session_state.get("internet_provider", "")
+    electricity_provider_name = st.session_state.get("electricity_provider", "")
+    natural_gas_provider_name = st.session_state.get("natural_gas_provider", "")
+    water_provider_name = st.session_state.get("water_provider", "")
+    emergency_kit_status = st.session_state.get("emergency_kit_status", "No")
+    emergency_kit_location = st.session_state.get("emergency_kit_location", "")
+    selected_items = st.session_state.get("homeowner_kit_stock", [])
+    not_selected_items = st.session_state.get("not_selected_items", [])
+    flashlights_info = st.session_state.get("flashlights_info", "")
+    radio_info = st.session_state.get("radio_info", "")
+    food_water_info = st.session_state.get("food_water_info", "")
+    important_docs_info = st.session_state.get("important_docs_info", "")
+    whistle_info = st.session_state.get("whistle_info", "")
+    medications_info = st.session_state.get("medications_info", "")
+    mask_info = st.session_state.get("mask_info", "")
+    maps_contacts_info = st.session_state.get("maps_contacts_info", "")
+    mail_info = st.session_state.get("mail_info", {})
+    mailbox_location = mail_info.get("Mailbox Location", "Not provided")
+    mailbox_key = mail_info.get("Mailbox Key", "Not provided")
+    pick_up_schedule = mail_info.get("Pick-Up Schedule", "Not provided")
+    what_to_do_with_mail = mail_info.get("What to Do with the Mail", "Not provided")
+    what_to_do_with_packages = mail_info.get("Packages", "Not provided")
+    trash_info = st.session_state.get("trash_info", {})
+    indoor = trash_info.get("indoor", {})
+    outdoor = trash_info.get("outdoor", {})
+    schedule = trash_info.get("schedule", {})
+    composting = trash_info.get("composting", {})
+    common_disposal = trash_info.get("common_disposal", {})
+    wm = trash_info.get("waste_management", {})
+
+    return f"""
+You are an expert assistant generating a city-specific Emergency Preparedness Run Book. Your task is to generate a detailed, easy-to-follow guide customized for residents of:
+
+- **City**: {city}
+- **Zip Code**: {zip_code}
+
+---
+
+### 🔍 Step 1: Utility Provider Information
+
+Start by identifying the **primary utility/service providers** for the given location. For each of the following services:
+
+- Internet
+- Electricity
+- Natural Gas
+- Water
+
+Provide:
+- Company Description
+- Customer Service Phone Number
+- Customer Service Address (if available)
+- Official Website
+- Emergency Contact Numbers (specific to outages, leaks, or service disruptions)
+- Steps to report issues or emergencies
+
+---
+
+### 🧰 Step 2: Emergency Kit Summary
+
+If **Emergency Kit Status** is "{emergency_kit_status}", include:
+- ✅ *Yes*: Indicate that the emergency kit is available and located at **{emergency_kit_location}**
+- ⚠️ *No*: Indicate that the kit is still in progress and will be stored at **{emergency_kit_location}**
+
+**Kit Inventory:**
+{selected_items}
+
+⚠️ **Consider adding the following items to the emergency kit**:
+{not_selected_items}
+
+---
+
+### 🚓 Step 3: Local Emergency Contacts
+
+Retrieve and list local contact information for:
+- Police Department
+- Fire Department
+- Nearest Hospital or Emergency Room
+- Poison Control Center
+
+---
+
+### 📬 Step 4: Mail Handling Instructions
+
+- **Mailbox Location**: {mailbox_location}
+- **Mailbox Key Info**: {mailbox_key}
+- **Pick-Up Schedule**: {pick_up_schedule}
+- **Mail Sorting Instructions**: {what_to_do_with_mail}
+- **Package Instructions**: {what_to_do_with_packages}
+
+---
+
+### 🗑️ Step 5: Trash & Recycling Instructions
+
+**Indoor Trash**
+- Kitchen Trash Bin Location: {indoor.get("kitchen_bin_location", "Not provided")}
+- Bathroom Trash Bin Location: {indoor.get("bathroom_bin_location", "Not provided")}
+- Trash Bag Type & Storage: {indoor.get("trash_bag_type", "Not provided")}
+- Emptying Schedule: {indoor.get("emptying_schedule", "Not provided")}
+- Replacing Trash Bags: {indoor.get("replacement_instructions", "Not provided")}
+
+**Outdoor Bins**
+- Where to take bins: {outdoor.get("bin_destination", "Not provided")}
+- Description of bins: {outdoor.get("bin_description", "Not provided")}
+- Specific location/instructions: {outdoor.get("bin_location_specifics", "Not provided")}
+- Handling Instructions: {outdoor.get("bin_handling_instructions", "Not provided")}
+
+**Collection Schedule**
+- Garbage Pickup: {schedule.get("trash_day", "Not provided")}, {schedule.get("trash_time", "Not provided")}
+- Recycling Pickup: {schedule.get("recycling_day", "Not provided")}, {schedule.get("recycling_time", "Not provided")}
+
+**Composting**
+- Composting Used: {"Yes" if composting.get("compost_used", False) else "No"}
+- Compost Instructions: {composting.get("compost_instructions", "N/A")}
+
+**Common Disposal Area**
+- Used: {"Yes" if common_disposal.get("uses_common_disposal", False) else "No"}
+- Instructions: {common_disposal.get("common_area_instructions", "N/A")}
+
+**Waste Management Contact**
+- Company Name: {wm.get("company_name", "Not provided")}
+- Phone: {wm.get("phone", "Not provided")}
+- Contact Notes: {wm.get("description", "Not provided")}
+
+---
+
+### 📕 Emergency Run Book
+
+#### ⚡ 1. Electricity – {electricity_provider_name}
+**Recommended Kit Items**:
+- {flashlights_info}
+- {radio_info}
+- {food_water_info}
+- {important_docs_info}
+
+#### 🔥 2. Natural Gas – {natural_gas_provider_name}
+**Recommended Kit Items**:
+- {whistle_info}
+- {important_docs_info}
+- {flashlights_info}
+
+#### 💧 3. Water – {water_provider_name}
+**Recommended Kit Items**:
+- {food_water_info}
+- {medications_info}
+- {mask_info}
+- {important_docs_info}
+
+#### 🌐 4. Internet – {internet_provider_name}
+**Recommended Kit Items**:
+- {radio_info}
+- {maps_contacts_info}
+- {important_docs_info}
 
 ---
 
@@ -980,8 +1143,6 @@ def trash_handling():
 
     st.session_state.progress["trash_completed"] = True
     save_progress(st.session_state.progress)
-
-    st.success("All trash handling instructions saved successfully!")
 
     # --- Display saved info and uploaded images ---
     if st.session_state.trash_info:
