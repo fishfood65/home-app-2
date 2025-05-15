@@ -480,14 +480,7 @@ def home():
         st.session_state["user_confirmation"] = user_confirmation  # store confirmation in session
 
         if user_confirmation:
-            prompt = utilities_emergency_runbook_prompt(
-                city=st.session_state.get("city", ""),
-                zip_code=st.session_state.get("zip_code", ""),
-                internet_provider_name=st.session_state.get("internet_provider", ""),
-                electricity_provider_name=st.session_state.get("electricity_provider", ""),
-                natural_gas_provider_name=st.session_state.get("natural_gas_provider", ""),
-                water_provider_name=st.session_state.get("water_provider", "")
-            )
+            prompt = utilities_emergency_runbook_prompt()
             st.code(prompt, language="markdown")
             st.session_state["generated_prompt"] = prompt  # Save for use below
 
@@ -610,14 +603,42 @@ def emergency_kit():
     return not_selected_items
 
 def emergency_kit_utilities():
-    st.subheader("Level 2: 🏥 Emergency Kit")
+
+    # Step 1: Input fields
     emergency_kit()
-    emergency_utilities_runbook_prompt()
     
+    # Step 32: Preview prompt
+    with st.expander("Confirm AI Prompt Preview by Selecting the button inside"):
+        user_confirmation = st.checkbox("Show AI Prompt")
+        st.session_state["user_confirmation"] = user_confirmation  # store confirmation in session
+
+        if user_confirmation:
+            prompt = utilities_emergency_runbook_prompt(
+                city=st.session_state.get("city", ""),
+                zip_code=st.session_state.get("zip_code", ""),
+                internet_provider_name=st.session_state.get("internet_provider", ""),
+                electricity_provider_name=st.session_state.get("electricity_provider", ""),
+                natural_gas_provider_name=st.session_state.get("natural_gas_provider", ""),
+                water_provider_name=st.session_state.get("water_provider", "")
+            )
+            st.code(prompt, language="markdown")
+            st.session_state["generated_prompt"] = prompt  # Save for use below
+
+    # Step 3: Generate runbook using reusable function
+    st.write("Next, click the button to generate your personalized utilities emergency runbook document:")
+
+    generate_runbook_from_prompt(
+        prompt=st.session_state.get("generated_prompt", ""),
+        api_key=os.getenv("MISTRAL_TOKEN"),
+        button_text="Complete Level 1 Mission",
+        doc_heading="Home Utilities Emergency Runbook",
+        doc_filename="home_utilities_emergency.docx"
+    )
+
     with st.expander("Confirm Level 2 AI Prompt Preview by Selecting the button inside"):
         user_confirmation = st.checkbox("Show Level 2 AI Prompt")
         if user_confirmation:
-            prompt = build_emergency_runbook_prompt(
+            prompt = emergency_kit_utilities_runbook_prompt(
             city=st.session_state.get("city", ""),
             zip_code=st.session_state.get("zip_code", ""),
             internet_provider_name=st.session_state.get("internet_provider", ""),
