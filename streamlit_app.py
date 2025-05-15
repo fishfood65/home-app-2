@@ -143,28 +143,6 @@ def utilities_emergency_runbook_prompt(
             electricity_provider_name=st.session_state.get("electricity_provider",""),
             natural_gas_provider_name=st.session_state.get("natural_gas_provider",""),
             water_provider_name=st.session_state.get("water_provider","")
-            #emergency_kit_status=st.session_state.get("emergency_kit_status", "No"),
-            #emergency_kit_location=st.session_state.emergency_kit_info.get("emergency_kit_location", ""),
-            #selected_items=st.session_state.emergency_kit_info.get("homeowner_kit_stock", []),
-            #flashlights_info=st.session_state.get("flashlights_info", ""),
-            #radio_info=st.session_state.get("radio_info", ""),
-            #food_water_info=st.session_state.get("food_water_info", ""),
-            #important_docs_info=st.session_state.get("important_docs_info", ""),
-            #whistle_info=st.session_state.get("whistle_info", ""),
-            #medications_info=st.session_state.get("medications_info", ""),
-            #mask_info=st.session_state.get("mask_info", ""),
-            #maps_contacts_info=st.session_state.get("maps_contacts_info", ""),
-            #item_locations={
-               # "flashlight_storage": st.session_state.get("flashlight_storage", ""),
-               # "first_aid_storage": st.session_state.get("first_aid_storage", ""),
-               # "food_water_storage": st.session_state.get("food_water_storage", ""),
-               # "medications_storage": st.session_state.get("medications_storage", ""),
-                #"important_doc_storage": st.session_state.get("important_doc_storage", ""),
-               # "radio_storage": st.session_state.get("radio_storage", ""),
-               # "whistle_storage": st.session_state.get("whistle_storage", ""),
-               # "mask_storage": st.session_state.get("mask_storage", ""),
-               # "maps_contacts_storage": st.session_state.get("maps_contacts_storage", "")
-            #}
         ):
 
     return f"""
