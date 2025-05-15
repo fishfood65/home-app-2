@@ -607,7 +607,7 @@ def emergency_kit_utilities():
     # Step 1: Input fields
     emergency_kit()
     
-    # Step 32: Preview prompt
+    # Step 2: Preview prompt
     with st.expander("Confirm AI Prompt Preview by Selecting the button inside"):
         user_confirmation = st.checkbox("Show AI Prompt")
         st.session_state["user_confirmation"] = user_confirmation  # store confirmation in session
@@ -630,26 +630,27 @@ def emergency_kit_utilities():
     generate_runbook_from_prompt(
         prompt=st.session_state.get("generated_prompt", ""),
         api_key=os.getenv("MISTRAL_TOKEN"),
-        button_text="Complete Level 1 Mission",
-        doc_heading="Home Utilities Emergency Runbook",
-        doc_filename="home_utilities_emergency.docx"
+        button_text="Complete Level 2 Mission",
+        doc_heading="Home Emergency Runbook",
+        doc_filename="home_utilities_emergency_kit.docx"
     )
 
     with st.expander("Confirm Level 2 AI Prompt Preview by Selecting the button inside"):
         user_confirmation = st.checkbox("Show Level 2 AI Prompt")
         if user_confirmation:
-            prompt = emergency_kit_utilities_runbook_prompt(
-            city=st.session_state.get("city", ""),
-            zip_code=st.session_state.get("zip_code", ""),
-            internet_provider_name=st.session_state.get("internet_provider", ""),
-            electricity_provider_name=st.session_state.get("electricity_provider", ""),
-            natural_gas_provider_name=st.session_state.get("gas_provider", ""),
-            water_provider_name=st.session_state.get("water_provider", ""),
-            emergency_kit_status=st.session_state.get("emergency_kit_status", "No"),
-            emergency_kit_location=st.session_state.get("emergency_kit_location", ""),
-            selected_items=st.session_state.get("homeowner_kit_stock", [])
-            )
+            prompt = emergency_kit_utilities_runbook_prompt()
             st.code(prompt, language="markdown")
+
+    # Step 4: Generate runbook using reusable function
+    st.write("Next, click the button to generate your personalized utilities emergency runbook document:")
+
+    generate_runbook_from_prompt(
+        prompt=st.session_state.get("generated_prompt", ""),
+        api_key=os.getenv("MISTRAL_TOKEN"),
+        button_text="Complete Level 2 Mission",
+        doc_heading="Home Emergency Runbook",
+        doc_filename="home_utilities_emergency_kit.docx"
+    )
 
 ### Call App Functions
 if __name__ == "__main__":
