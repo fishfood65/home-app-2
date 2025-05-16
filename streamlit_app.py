@@ -1692,7 +1692,7 @@ def emergency_kit_critical_documents():
             'Social Security Card',
             'Birth Certificates',
             'Marriage/Divorce Certificates',
-            'Citizenship/Immigration Documents'
+            'Citizenship/Immigration Documents',
             'Passport'
         ],
         'Health and Medical Documents': [
@@ -1844,6 +1844,10 @@ def collect_document_details():
     ]
 
     for category, docs in selected.items():
+        # ← Skip any category with no selected docs
+        if not docs:
+            continue
+
         st.subheader(category)
         for doc in docs:
             st.markdown(f"**{doc}**")
