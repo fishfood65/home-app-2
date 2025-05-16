@@ -1688,11 +1688,12 @@ def emergency_kit_critical_documents():
     # Define categories and the corresponding documents
     documents = {
         'Identification Documents': [
-            'Government-issued ID (Driver’s license, state ID, or passport)',
+            'Government-issued ID (Driver’s license, state ID)',
             'Social Security Card',
             'Birth Certificates',
             'Marriage/Divorce Certificates',
             'Citizenship/Immigration Documents'
+            'Passport'
         ],
         'Health and Medical Documents': [
             'Health Insurance Cards',
@@ -1701,7 +1702,43 @@ def emergency_kit_critical_documents():
             'Emergency Medical Information',
             'Medical Power of Attorney'
         ],
-        # … other categories …
+        'Financial Documents': [
+            'Bank Account Information',
+            'Credit Cards/Debit Cards',
+            'Checkbook',
+            'Tax Returns (Last Year’s)',
+            'Insurance Policies (Auto, Health, Home, Life, etc.)',
+            'Investment Documents'
+        ],
+        'Homeownership or Rental Documents': [
+            'Deed or Lease Agreement',
+            'Mortgage or Rent Payment Records',
+            'Home Insurance Policy'
+        ],
+         'Legal Documents': [
+            'Will or Living Will',
+            'Power of Attorney',
+            'Property Title and Vehicle Titles',
+            'Child Custody or Adoption Papers'
+        ],
+        'Emergency Contact Information': [
+            'Contact List',
+            'Emergency Plan'
+        ],
+        'Travel Documents': [
+            'Travel Itinerary'
+        ],
+        'Educational Documents': [
+            'School Records',
+            'Diplomas and Degrees',
+            'Certificates and Licenses'
+        ],
+        'Significant Documents': [
+            'Pet Records',
+            'Photos of Important Belongings',
+            'Bankruptcy or Legal Filings'
+        ]
+
     }
 
     # Initialize session state
