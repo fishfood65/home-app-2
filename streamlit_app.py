@@ -13,8 +13,7 @@ from PIL import Image
 import io
 import uuid
 import json
-from docx.oxml.ns import nsdecls
-from docx.oxml import OxmlElement
+from bs4 import BeautifulSoup
 
 st.set_page_config(
     page_title="Hello",
@@ -144,95 +143,40 @@ def format_output_for_docx(output: str) -> str:
     """Formats markdown-like output to docx-friendly text with HTML-like formatting."""
     if not output:
         return ""
-
-    # Convert markdown-like headings to <h2>, <h3>, <h4>
+    
+    # Convert markdown-like headings, bold, and italic
     formatted_text = re.sub(r"^## (.*)", r"<h2>\1</h2>", output, flags=re.MULTILINE)  # Convert ## to <h2>
-    formatted_text = re.sub(r"^### (.*)", r"<h3>\1</h3>", formatted_text, flags=re.MULTILINE)  # Convert ### to <h3>
-    formatted_text = re.sub(r"^#### (.*)", r"<h4>\1</h4>", formatted_text, flags=re.MULTILINE)  # Convert #### to <h4>
-
-    # Convert markdown-style bold and italic to HTML-like <b> and <i>
     formatted_text = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", formatted_text)  # Convert **bold** to <b>
     formatted_text = re.sub(r"\*(.*?)\*", r"<i>\1</i>", formatted_text)  # Convert *italic* to <i>
-
-    # Convert markdown-style links [text](url) to <a> tags
-    formatted_text = re.sub(r"\[([^\]]+)\]\((http[^\)]+)\)", r"<a href='\2'>\1</a>", formatted_text)
-
-    # Convert markdown dashes to unordered list <ul><li> items
-    formatted_text = re.sub(r"^-\s(.*)", r"<ul><li>\1</li></ul>", formatted_text, flags=re.MULTILINE)
+    return formatted_text
 
     return formatted_text
 
 def save_docx_from_formatted_text(formatted_text: str, doc_filename: str, doc_heading: str):
-    """Saves the formatted text into a DOCX file with proper formatting, including links and bullet points."""
+    """Saves the formatted text into a DOCX file with proper formatting."""
     doc = Document()
     doc.add_heading(doc_heading, 0)
 
     # Split the formatted text by paragraphs and process each paragraph
     paragraphs = formatted_text.split('\n\n')
-
     for para in paragraphs:
         # Create a paragraph in the DOCX file
         doc_paragraph = doc.add_paragraph()
 
-        # Handle bold, italic, hyperlinks, and bullet points
-        runs = re.split(r'(<b>.*?</b>|<i>.*?</i>|<a href=.*?>.*?</a>|<ul><li>.*?</li></ul>|<h2>.*?</h2>|<h3>.*?</h3>|<h4>.*?</h4>)', para)  # Split by bold, italic, link, or bullet tags
-
-        # First, process headings (<h2>, <h3>, <h4>) before italic
-        for run in runs:
-            if run.startswith('<h2>'):
-                run_text = run[4:-5]  # Remove <h2> and </h2>
-                doc.add_heading(run_text, level=2)
-            elif run.startswith('<h3>'):
-                run_text = run[4:-5]  # Remove <h3> and </h3>
-                doc.add_heading(run_text, level=3)
-            elif run.startswith('<h4>'):
-                run_text = run[4:-5]  # Remove <h4> and </h4>
-                doc.add_heading(run_text, level=4)
-
-        # Next, process bold text (<b>...</b>)
+        # Handle bold and italic text
+        runs = re.split(r'(<b>.*?</b>|<i>.*?</i>)', para)  # Split by bold or italic tags
         for run in runs:
             if run.startswith('<b>'):
                 run_text = run[3:-4]  # Remove <b> and </b>
                 doc_paragraph.add_run(run_text).bold = True
-
-        # Then process hyperlinks (<a href=...>)
-        for run in runs:
-            if run.startswith('<a href='):
-                # Extract the link and text from <a href="url">text</a>
-                match = re.match(r'<a href="(.*?)">(.*?)</a>', run)
-                if match:
-                    url = match.group(1)
-                    text = match.group(2)
-                    # Add the hyperlink to the document
-                    run_obj = doc_paragraph.add_run(text)
-                    # Creating the hyperlink element (using lxml)
-                    hyperlink = OxmlElement('w:hyperlink')
-                    hyperlink.set(nsdecls('w'), 'http://schemas.openxmlformats.org/wordprocessingml/2006/main')
-                    r = OxmlElement('w:r')
-                    rPr = OxmlElement('w:rPr')
-                    rPr.append(OxmlElement('w:rStyle'))
-                    r.append(rPr)
-                    r.text = text
-                    hyperlink.append(r)
-                    doc_paragraph._element.append(hyperlink)
-
-        # After bold and hyperlinks, process italic (<i>...</i>) formatting
-        for run in runs:
-            if run.startswith('<i>'):
+            elif run.startswith('<i>'):
                 run_text = run[3:-4]  # Remove <i> and </i>
                 doc_paragraph.add_run(run_text).italic = True
-
-        # Process bullet points (<ul><li>...</li></ul>)
-        for run in runs:
-            if run.startswith('<ul>'):
-                # Process bullet points (unordered list)
-                items = re.findall(r'<li>(.*?)</li>', run)
-                for item in items:
-                    doc_paragraph = doc.add_paragraph(item, style='ListBullet')
             else:
                 doc_paragraph.add_run(run)
 
     doc.save(doc_filename)
+
 
 def generate_runbook_from_prompt(
     prompt: str,
