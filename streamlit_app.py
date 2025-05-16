@@ -129,7 +129,8 @@ def main():
         tabs = st.tabs([
             "📝 Select Documents",
             "📋 Review Selections",
-            "🗂 Document Details"
+            "🗂 Document Details",
+            "📦 Generate Kit"
         ])
 
         with tabs[0]:
@@ -143,6 +144,9 @@ def main():
         with tabs[2]:
             st.markdown("### Step 3: Fill in Document Details")
             collect_document_details()
+        
+        with tabs[3]:
+            generate_kit_tab()
 
     # === Bonus Level ===
     elif section == "Bonus Level":
