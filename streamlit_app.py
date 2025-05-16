@@ -122,7 +122,7 @@ def main():
 
     elif section == "Level 4":
         st.subheader("🧠 Level 4 Analysis")
-        mail_trash_handling()
+        security_convenience_ownership()
 
     elif section == "Level 5":
         st.subheader("🚀 Level 5 Launch")
@@ -298,6 +298,74 @@ def generate_runbook_from_prompt_split(
 
         except Exception as e:
             st.error(f"❌ Error generating runbook: {str(e)}")
+
+def generate_runbook_from_multiple_prompts(
+    prompts: list,
+    api_key: str,
+    button_text: str,
+    doc_heading: str,
+    doc_filename: str
+):
+    """
+    Calls Mistral API with a list of prompts, concatenates results,
+    formats the content, and generates a downloadable DOCX.
+    """
+    unique_key = f"{button_text.lower().replace(' ', '_')}_button"
+    clicked = st.button(button_text, key=unique_key)
+
+    # 🔍 Debug Info
+    with st.expander("🧪 Debug Info (Prompt + State)"):
+        st.write("🔘 **Button Clicked:**", "✅ Yes" if clicked else "❌ No")
+        st.write("🙋 **User Confirmed Prompt:**", st.session_state.get("user_confirmation", False))
+        st.write("🔑 **API Key Loaded:**", "✅ Yes" if api_key else "❌ No")
+
+        for idx, prompt in enumerate(prompts):
+            label = f"Prompt #{idx + 1}"
+            st.write(f"📄 **{label} Exists:**", "✅ Yes" if prompt else "❌ No")
+            if prompt:
+                st.code(prompt[:500] + "..." if len(prompt) > 500 else prompt, language="markdown")
+
+    if clicked:
+        if not st.session_state.get("user_confirmation", False):
+            st.warning("⚠️ Please confirm the AI prompt before generating the runbook.")
+            return
+
+        try:
+            client = Mistral(api_key=api_key)
+            combined_output = ""
+
+            for idx, prompt in enumerate(prompts):
+                st.info(f"📡 Querying Mistral for Section {idx + 1}...")
+                response = client.chat.complete(
+                    model="mistral-small-latest",
+                    messages=[UserMessage(content=prompt)],
+                    max_tokens=1500,
+                    temperature=0.5,
+                )
+                combined_output += response.choices[0].message.content + "\n\n"
+
+            formatted_output = format_output_for_docx(combined_output)
+
+            st.success(f"{doc_heading} generated successfully!")
+            st.write(combined_output)
+
+            # Write to DOCX
+            doc = Document()
+            doc.add_heading(doc_heading, 0)
+            doc.add_paragraph(formatted_output)
+            doc.save(doc_filename)
+
+            with open(doc_filename, "rb") as f:
+                st.download_button(
+                    label="📄 Download DOCX",
+                    data=f,
+                    file_name=doc_filename,
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
+
+        except Exception as e:
+            st.error(f"❌ Error generating runbook: {str(e)}")
+
 
 #### Prompts Here #####
 
@@ -608,7 +676,7 @@ You are an expert assistant generating Mail and Waste Management Run Book. Compo
 
 ---
 
-### 🗑️ Trash & Recycling Instructions
+#### 🗑️ Trash & Recycling Instructions
 
 **Indoor Trash**
 - Kitchen Trash: {indoor.get("kitchen_bin", "Not provided")}
@@ -642,6 +710,103 @@ You are an expert assistant generating Mail and Waste Management Run Book. Compo
 
 Ensure the run book is clearly formatted using Markdown, with bold headers and bullet points. Use ⚠️ to highlight missing kit items.
 """.strip()
+
+#### Security and Services Prompt ####
+
+def home_caretaker_runbook_prompt():
+    csi = st.session_state.get("convenience_seeker_info", {})
+    roi = st.session_state.get("rent_own_info", {})
+    hsi = st.session_state.get("home_security_info", {})
+
+    return f"""
+You are a helpful assistant tasked with generating a professional, detailed, and easy-to-follow Home Caretaker & Guest Runbook. The goal is to ensure a smooth experience for caretakers or guests while the home occupants are away. 
+
+Please use the following information provided by the homeowner to write a clear and structured guide:
+Please omit any headings that return "Not provided" for all the values below it.
+Please omit any sub-headings that return "Not provided" for all the values below it.
+Please omit any lines that return "Not provided" or "N/A".
+Please omit any sub-headings that return "Not provided" or "N/A" for all the values below it.
+Please don't add a title to the runbook.
+
+### 📕 Security and Services Guide
+
+#### 🔐 Home Security & Technology
+- Security Company Name: {hsi.get("home_security_comp_name", "Not provided")}
+- Security Company Number: {hsi.get("home_security_comp_num", "Not provided")}
+- Arming/Disarming Instructions: {hsi.get("arm_disarm_instructions", "Not provided")}
+- If Alert is Triggered: {hsi.get("security_alert_steps", "Not provided")}
+- Indoor Camera Notes: {hsi.get("indoor_cameras", "Not provided")}
+- Emergency Access Instructions: {hsi.get("access_emergency", "Not provided")}
+- Wi-Fi Info Location: {hsi.get("wifi_network_name", "Not provided")}
+- Guest Wi-Fi Access: {hsi.get("wifi_guests", "Not provided")}
+- Landline/VOIP Notes: {hsi.get("landline_voip", "Not provided")}
+
+---
+
+#### 🧹 Cleaning Service Instructions
+- Company Name: {csi.get("cleaning_name", "Not provided")}
+- Phone Number: {csi.get("cleaning_number", "Not provided")}
+- Schedule: {csi.get("cleaning_schedule", "Not provided")}
+- Access Method: {csi.get("cleaning_access", "Not provided")}
+- Post-Cleaning Procedures: {csi.get("cleaning_finish_steps", "Not provided")}
+- Crew Identity Verification: {csi.get("cleaning_identity_confirmation", "Not provided")}
+
+---
+
+#### 🌿 Gardening & Landscape Service Instructions
+- Company Name: {csi.get("gardening_name", "Not provided")}
+- Phone Number: {csi.get("gardening_number", "Not provided")}
+- Schedule: {csi.get("gardening_schedule", "Not provided")}
+- Access Method: {csi.get("gardening_access", "Not provided")}
+- Post-Service Procedures: {csi.get("gardening_finish_steps", "Not provided")}
+- Crew Identity Verification: {csi.get("gardening_identity_confirmation", "Not provided")}
+
+---
+
+#### 🏊 Pool Maintenance Instructions
+- Company Name: {csi.get("pool_name", "Not provided")}
+- Phone Number: {csi.get("pool_number", "Not provided")}
+- Schedule: {csi.get("pool_schedule", "Not provided")}
+- Access Method: {csi.get("pool_access", "Not provided")}
+- Post-Service Procedures: {csi.get("pool_finish_steps", "Not provided")}
+- Crew Identity Verification: {csi.get("pool_identity_confirmation", "Not provided")}
+
+---
+
+#### 🏢 Property Management (Renters or HOA)
+- Company Name: {roi.get("property_management_name", "Not provided")}
+- Phone Number: {roi.get("property_management_number", "Not provided")}
+- Email: {roi.get("property_management_email", "Not provided")}
+- When to Contact: {roi.get("property_management_description", "Not provided")}
+
+---
+
+#### 🛠️ Service Contacts (For Homeowners)
+**Handyman**
+- Name: {roi.get("handyman_name", "N/A")}
+- Phone: {roi.get("handyman_number", "N/A")}
+- When to Contact: {roi.get("handyman_description", "N/A")}
+
+**Electrician**
+- Name: {roi.get("electrician_name", "N/A")}
+- Phone: {roi.get("electrician_number", "N/A")}
+- When to Contact: {roi.get("electrician_description", "N/A")}
+
+**Exterminator**
+- Name: {roi.get("exterminator_name", "N/A")}
+- Phone: {roi.get("exterminator_number", "N/A")}
+- When to Contact: {roi.get("exterminator_description", "N/A")}
+
+**Plumber**
+- Name: {roi.get("plumber_name", "N/A")}
+- Phone: {roi.get("plumber_number", "N/A")}
+- When to Contact: {roi.get("plumber_description", "N/A")}
+
+---
+
+Please format the runbook clearly with headers and bullet points. Use “⚠️ Not provided” as a flag for incomplete or missing info that should be reviewed.
+""".strip()
+
 
 ###### Main Functions that comprise of the Levels
 
@@ -1174,19 +1339,19 @@ def mail_trash_handling():
             st.code(st.session_state["prompt_mail_trash"], language="markdown")
 
     # Step 3: Generate runbook using reusable function
-    st.write("Next, click the button to generate your personalized utilities emergency runbook document:")
+   # st.write("Next, click the button to generate your personalized utilities emergency runbook document:")
 
-    st.markdown("### 🧪 Debug Info")
+    # st.markdown("### 🧪 Debug Info")
 
-    st.write("🔑 **API Key Loaded:**", "✅ Yes" if os.getenv("MISTRAL_TOKEN") else "❌ No")
+    # st.write("🔑 **API Key Loaded:**", "✅ Yes" if os.getenv("MISTRAL_TOKEN") else "❌ No")
 
-    st.write("✅ **User Confirmed Prompt:**", st.session_state.get("user_confirmation", False))
+    # st.write("✅ **User Confirmed Prompt:**", st.session_state.get("user_confirmation", False))
 
-    st.write("📄 **Emergency Prompt Exists:**", "✅ Yes" if st.session_state.get("prompt_emergency") else "❌ No")
-    st.code(st.session_state.get("prompt_emergency", "⚠️ Emergency prompt not generated."), language="markdown")
+    # st.write("📄 **Emergency Prompt Exists:**", "✅ Yes" if st.session_state.get("prompt_emergency") else "❌ No")
+    # st.code(st.session_state.get("prompt_emergency", "⚠️ Emergency prompt not generated."), language="markdown")
 
-    st.write("📬 **Mail & Trash Prompt Exists:**", "✅ Yes" if st.session_state.get("prompt_mail_trash") else "❌ No")
-    st.code(st.session_state.get("prompt_mail_trash", "⚠️ Mail/Trash prompt not generated."), language="markdown")
+    # st.write("📬 **Mail & Trash Prompt Exists:**", "✅ Yes" if st.session_state.get("prompt_mail_trash") else "❌ No")
+    # st.code(st.session_state.get("prompt_mail_trash", "⚠️ Mail/Trash prompt not generated."), language="markdown")
 
     generate_runbook_from_prompt_split(
         prompt_emergency=st.session_state.get("prompt_emergency", ""),
@@ -1195,6 +1360,271 @@ def mail_trash_handling():
         button_text="Complete Level 3 Mission",
         doc_heading="Home Emergency Runbook for Cartakers and Guests",
         doc_filename="home_runbook_cartakers.docx"
+    )
+
+def home_security():
+    st.write("💝 Security-Conscious")
+
+    # Initialize session state
+    if 'home_security_info' not in st.session_state:
+        st.session_state.home_security_info = {}
+
+    with st.expander("Home Security System (if applicable)", expanded=True):
+        st.markdown("##### Home Security and Privacy Info")
+        home_security_applicable = st.checkbox("Are you home security and privacy conscious?")
+
+        if home_security_applicable:
+            st.session_state.home_security_info['home_security_applicable'] = True
+
+            home_security_comp_name = st.text_input("Name of the home security company")
+            if home_security_comp_name:
+                st.session_state.home_security_info['home_security_comp_name'] = home_security_comp_name
+
+            home_security_comp_num = st.text_input("Contact number for the home security company")
+            if home_security_comp_num:
+                st.session_state.home_security_info['home_security_comp_num'] = home_security_comp_num
+
+            arm_disarm_instructions = st.text_area(
+                "Instructions to arm and disarm the home security system",
+                placeholder="E.g. Shared with you through secure text message or shared password manager link"
+            )
+            if arm_disarm_instructions:
+                st.session_state.home_security_info['arm_disarm_instructions'] = arm_disarm_instructions
+
+            security_alert_steps = st.text_area(
+                "Steps to follow if a security alert is triggered",
+                placeholder="E.g. Check monitor, call security company"
+            )
+            if security_alert_steps:
+                st.session_state.home_security_info['security_alert_steps'] = security_alert_steps
+
+            indoor_cameras = st.text_area(
+                "Are there any indoor cameras or monitoring systems in place, and how are they activated?"
+            )
+            if indoor_cameras:
+                st.session_state.home_security_info['indoor_cameras'] = indoor_cameras
+
+            access_emergency = st.text_area(
+                "Access instructions for emergencies or lockouts, and where those instructions are stored"
+            )
+            if access_emergency:
+                st.session_state.home_security_info['access_emergency'] = access_emergency
+
+            wifi_network_name = st.text_input(
+                "Where is the Wi-Fi network name and password typically stored?"
+            )
+            if wifi_network_name:
+                st.session_state.home_security_info['wifi_network_location'] = wifi_network_name
+
+            wifi_guests = st.text_input(
+                "Is there a specific Wi-Fi network guests should use? If yes, how is the password shared?"
+            )
+            if wifi_guests:
+                st.session_state.home_security_info['wifi_guests'] = wifi_guests
+
+            landline_voip = st.text_area(
+                "Are there any home phones? If yes, how should calls be handled? Who should be contacted for any home phone issues?"
+            )
+            if landline_voip:
+                st.session_state.home_security_info['landline_voip'] = landline_voip
+
+        else:
+            st.info("🔒 You indicated home security is not applicable.")
+            st.session_state.home_security_info = {"home_security_applicable": False}
+    
+    # --- Save Button ---
+    if st.button("💾 Security-Conscious Info"):
+        st.session_state["home_security_saved"] = True
+        st.success("✅ Home Security and Privacy information saved successfully!")
+    
+def convenience_seeker():
+    st.write("🧼 Quality-Oriented Household Services")
+
+    # Initialize in session state
+    if 'convenience_seeker_info' not in st.session_state:
+        st.session_state.convenience_seeker_info = {}
+
+    with st.expander("Home Quality-Oriented (if applicable)", expanded=True):
+        st.markdown("##### Services You Invest In")
+        
+        options = st.multiselect(
+            "As someone who wants their home and garden to be well-maintained and is willing to invest in professional help, what services do you pay for?",
+            ["Cleaning", "Gardening/Landscape", "Pool Maintenance"]
+        )
+        st.session_state.convenience_seeker_info['convenience_seeker_options'] = options
+
+        # --- Cleaning Service ---
+        if "Cleaning" in options:
+            st.subheader("🧹 Cleaning Service Info")
+            st.session_state.convenience_seeker_info['cleaning_name'] = st.text_input("Cleaning Company Name")
+            st.session_state.convenience_seeker_info['cleaning_number'] = st.text_input("Cleaning Company Phone Number")
+            st.session_state.convenience_seeker_info['cleaning_schedule'] = st.text_input("Cleaning Schedule")
+            st.session_state.convenience_seeker_info['cleaning_access'] = st.text_input("Access Method for Cleaners")
+            st.session_state.convenience_seeker_info['cleaning_finish_steps'] = st.text_area("Post-Cleaning Procedures")
+            st.session_state.convenience_seeker_info['cleaning_identity_confirmation'] = st.text_area("Cleaning Crew Identity Verification")
+
+        # --- Gardening/Landscape Service ---
+        if "Gardening/Landscape" in options:
+            st.subheader("🌿 Gardening/Landscape Service Info")
+            st.session_state.convenience_seeker_info['gardening_name'] = st.text_input("Gardening Company Name")
+            st.session_state.convenience_seeker_info['gardening_number'] = st.text_input("Gardening Company Phone Number")
+            st.session_state.convenience_seeker_info['gardening_schedule'] = st.text_input("Gardening Schedule")
+            st.session_state.convenience_seeker_info['gardening_access'] = st.text_input("Access Method for Gardeners")
+            st.session_state.convenience_seeker_info['gardening_finish_steps'] = st.text_area("Post-Gardening Procedures")
+            st.session_state.convenience_seeker_info['gardening_identity_confirmation'] = st.text_area("Gardening Crew Identity Verification")
+
+        # --- Pool Maintenance Service ---
+        if "Pool Maintenance" in options:
+            st.subheader("🏊 Pool Maintenance Info")
+            st.session_state.convenience_seeker_info['pool_name'] = st.text_input("Pool Maintenance Company Name")
+            st.session_state.convenience_seeker_info['pool_number'] = st.text_input("Pool Company Phone Number")
+            st.session_state.convenience_seeker_info['pool_schedule'] = st.text_input("Pool Maintenance Schedule")
+            st.session_state.convenience_seeker_info['pool_access'] = st.text_input("Access Method for Pool Techs")
+            st.session_state.convenience_seeker_info['pool_finish_steps'] = st.text_area("Post-Maintenance Procedures")
+            st.session_state.convenience_seeker_info['pool_identity_confirmation'] = st.text_area("Pool Crew Identity Verification")
+        
+        # --- Save Button ---
+    if st.button("💾 Quality-Oriented Household Services Info"):
+        st.session_state["convenience_seeker_saved"] = True
+        st.success("✅ Services you invest in information saved successfully!")
+
+
+def rent_own():
+    st.write("🏠 Home Ownership Status")
+
+    if "rent_own_info" not in st.session_state:
+        st.session_state.rent_own_info = {}
+
+    housing_status = st.selectbox(
+        "Do you rent or own your home?",
+        ("Select an option", "Rent", "Own")
+    )
+
+    st.session_state.rent_own_info["housing_status"] = housing_status
+
+    if housing_status == "Rent":
+        st.subheader("🏢 Property Management Info")
+
+        st.session_state.rent_own_info["property_management_name"] = st.text_input("Company Name")
+        st.session_state.rent_own_info["property_management_number"] = st.text_input("Company Phone Number")
+        st.session_state.rent_own_info["property_management_email"] = st.text_input("Company Email")
+        st.session_state.rent_own_info["property_management_description"] = st.text_area(
+            "When to Contact", placeholder="E.g. Roof issues, leaking pipe, parking, etc."
+        )
+
+    elif housing_status == "Own":
+        st.subheader("🧰 Homeowner Contacts")
+
+        homeowner_contacts_options = st.multiselect(
+            "Which service contacts are applicable?",
+            ["Handyman/Contractor", "Electrician", "Exterminator", "Plumber", "HOA"]
+        )
+
+        st.session_state.rent_own_info["homeowner_contacts_options"] = homeowner_contacts_options
+
+        # Utility function for section layout
+        def contact_section(role):
+            st.write(f"### {role}")
+            name = st.text_input(f"{role} Name")
+            number = st.text_input(f"{role} Phone Number")
+            description = st.text_area(f"When to Contact {role}?")
+            if name: st.session_state.rent_own_info[f"{role.lower()}_name"] = name
+            if number: st.session_state.rent_own_info[f"{role.lower()}_number"] = number
+            if description: st.session_state.rent_own_info[f"{role.lower()}_description"] = description
+
+        if "Handyman/Contractor" in homeowner_contacts_options:
+            contact_section("Handyman")
+
+        if "Electrician" in homeowner_contacts_options:
+            contact_section("Electrician")
+
+        if "Exterminator" in homeowner_contacts_options:
+            contact_section("Exterminator")
+
+        if "Plumber" in homeowner_contacts_options:
+            contact_section("Plumber")
+
+        if "HOA" in homeowner_contacts_options:
+            st.write("🏘️ HOA / Property Management")
+
+            st.session_state.rent_own_info["property_management_name"] = st.text_input("Company Name (HOA)")
+            st.session_state.rent_own_info["property_management_number"] = st.text_input("Phone Number (HOA)")
+            st.session_state.rent_own_info["property_management_email"] = st.text_input("Email (HOA)")
+            st.session_state.rent_own_info["property_management_description"] = st.text_area(
+                "When to Contact (HOA)",
+                placeholder="E.g. roof issues, bylaws, common areas, etc."
+            )
+        # --- Save Button ---
+    if st.button("💾 Save Housing Status & Contacts Info"):
+        st.session_state["rent_own_saved"] = True
+        st.success("✅ Housing Status and contact information saved successfully!")
+
+
+def security_convenience_ownership():
+    st.subheader("Level 4: Home Security, Privacy, Quality-Orientation, and Support")
+    # Step 1: User Input
+    home_security()
+    convenience_seeker()
+    rent_own()
+    
+    # Step 2: Preview prompt
+
+    # Move this outside the expander
+    user_confirmation = st.checkbox("✅ Confirm AI Prompt")
+    st.session_state["user_confirmation"] = user_confirmation # store confirmation in session
+
+    st.session_state.progress["level_4_completed"] = True
+    save_progress(st.session_state.progress)
+
+    if user_confirmation:
+        prompt_emergency = emergency_kit_utilities_runbook_prompt()
+        prompt_mail_trash = mail_trash_runbook_prompt()
+        prompt_home_caretaker = home_caretaker_runbook_prompt()
+        st.session_state["prompt_emergency"] = prompt_emergency
+        st.session_state["prompt_mail_trash"] = prompt_mail_trash
+        st.session_state["prompt_home_caretaker"]= prompt_home_caretaker
+    else:
+        st.session_state["prompt_emergency"] = None
+        st.session_state["prompt_mail_trash"] = None
+        st.session_state["prompt_home_caretaker"]= None
+
+# Show prompt in expander
+    with st.expander("AI Prompt Preview (Optional)"):
+        if st.session_state.get("prompt_emergency"):
+            st.markdown("#### 🆘 Emergency + Utilities Prompt")
+            st.code(st.session_state["prompt_emergency"], language="markdown")
+        if st.session_state.get("prompt_mail_trash"):
+            st.markdown("#### 📬 Mail + Trash Prompt")
+            st.code(st.session_state["prompt_mail_trash"], language="markdown")
+        if st.session_state.get("prompt_home_caretaker"):
+            st.markdown("#### 💝 Home Protection + Services Prompt")
+            st.code(st.session_state["prompt_home_caretaker"], language="markdown")
+
+    # Step 3: Generate runbook using reusable function
+   # st.write("Next, click the button to generate your personalized utilities emergency runbook document:")
+
+    # st.markdown("### 🧪 Debug Info")
+
+    # st.write("🔑 **API Key Loaded:**", "✅ Yes" if os.getenv("MISTRAL_TOKEN") else "❌ No")
+
+    # st.write("✅ **User Confirmed Prompt:**", st.session_state.get("user_confirmation", False))
+
+    # st.write("📄 **Emergency Prompt Exists:**", "✅ Yes" if st.session_state.get("prompt_emergency") else "❌ No")
+    # st.code(st.session_state.get("prompt_emergency", "⚠️ Emergency prompt not generated."), language="markdown")
+
+    # st.write("📬 **Mail & Trash Prompt Exists:**", "✅ Yes" if st.session_state.get("prompt_mail_trash") else "❌ No")
+    # st.code(st.session_state.get("prompt_mail_trash", "⚠️ Mail/Trash prompt not generated."), language="markdown")
+
+    generate_runbook_from_multiple_prompts(
+        prompts=[
+            st.session_state.get("prompt_emergency", ""),
+            st.session_state.get("prompt_mail_trash", ""),
+            st.session_state.get("prompt_home_caretaker", "")
+        ],
+        api_key=os.getenv("MISTRAL_TOKEN"),
+        button_text="Complete Level 4 Mission",
+        doc_heading="Comprehensive Housekeeping Runbook",
+        doc_filename="housekeeping_runbook.docx"
     )
 
 
