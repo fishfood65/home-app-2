@@ -13,6 +13,8 @@ from PIL import Image
 import io
 import uuid
 import json
+from docx.oxml.ns import nsdecls
+from docx.oxml import OxmlElement
 
 st.set_page_config(
     page_title="Hello",
@@ -139,13 +141,98 @@ def main():
 
 #### Reusable Functions to Generate and Format Runbooks #####
 def format_output_for_docx(output: str) -> str:
-    """Formats markdown-like output to docx-friendly text."""
+    """Formats markdown-like output to docx-friendly text with HTML-like formatting."""
     if not output:
         return ""
-    formatted_text = re.sub(r"^## (.*)", r"\n\n\1\n", output, flags=re.MULTILINE)
-    formatted_text = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", formatted_text)
-    formatted_text = re.sub(r"\*(.*?)\*", r"<i>\1</i>", formatted_text)
+
+    # Convert markdown-like headings to <h2>, <h3>, <h4>
+    formatted_text = re.sub(r"^## (.*)", r"<h2>\1</h2>", output, flags=re.MULTILINE)  # Convert ## to <h2>
+    formatted_text = re.sub(r"^### (.*)", r"<h3>\1</h3>", formatted_text, flags=re.MULTILINE)  # Convert ### to <h3>
+    formatted_text = re.sub(r"^#### (.*)", r"<h4>\1</h4>", formatted_text, flags=re.MULTILINE)  # Convert #### to <h4>
+
+    # Convert markdown-style bold and italic to HTML-like <b> and <i>
+    formatted_text = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", formatted_text)  # Convert **bold** to <b>
+    formatted_text = re.sub(r"\*(.*?)\*", r"<i>\1</i>", formatted_text)  # Convert *italic* to <i>
+
+    # Convert markdown-style links [text](url) to <a> tags
+    formatted_text = re.sub(r"\[([^\]]+)\]\((http[^\)]+)\)", r"<a href='\2'>\1</a>", formatted_text)
+
+    # Convert markdown dashes to unordered list <ul><li> items
+    formatted_text = re.sub(r"^-\s(.*)", r"<ul><li>\1</li></ul>", formatted_text, flags=re.MULTILINE)
+
     return formatted_text
+
+def save_docx_from_formatted_text(formatted_text: str, doc_filename: str, doc_heading: str):
+    """Saves the formatted text into a DOCX file with proper formatting, including links and bullet points."""
+    doc = Document()
+    doc.add_heading(doc_heading, 0)
+
+    # Split the formatted text by paragraphs and process each paragraph
+    paragraphs = formatted_text.split('\n\n')
+
+    for para in paragraphs:
+        # Create a paragraph in the DOCX file
+        doc_paragraph = doc.add_paragraph()
+
+        # Handle bold, italic, hyperlinks, and bullet points
+        runs = re.split(r'(<b>.*?</b>|<i>.*?</i>|<a href=.*?>.*?</a>|<ul><li>.*?</li></ul>|<h2>.*?</h2>|<h3>.*?</h3>|<h4>.*?</h4>)', para)  # Split by bold, italic, link, or bullet tags
+
+        # First, process headings (<h2>, <h3>, <h4>) before italic
+        for run in runs:
+            if run.startswith('<h2>'):
+                run_text = run[4:-5]  # Remove <h2> and </h2>
+                doc.add_heading(run_text, level=2)
+            elif run.startswith('<h3>'):
+                run_text = run[4:-5]  # Remove <h3> and </h3>
+                doc.add_heading(run_text, level=3)
+            elif run.startswith('<h4>'):
+                run_text = run[4:-5]  # Remove <h4> and </h4>
+                doc.add_heading(run_text, level=4)
+
+        # Next, process bold text (<b>...</b>)
+        for run in runs:
+            if run.startswith('<b>'):
+                run_text = run[3:-4]  # Remove <b> and </b>
+                doc_paragraph.add_run(run_text).bold = True
+
+        # Then process hyperlinks (<a href=...>)
+        for run in runs:
+            if run.startswith('<a href='):
+                # Extract the link and text from <a href="url">text</a>
+                match = re.match(r'<a href="(.*?)">(.*?)</a>', run)
+                if match:
+                    url = match.group(1)
+                    text = match.group(2)
+                    # Add the hyperlink to the document
+                    run_obj = doc_paragraph.add_run(text)
+                    # Creating the hyperlink element (using lxml)
+                    hyperlink = OxmlElement('w:hyperlink')
+                    hyperlink.set(nsdecls('w'), 'http://schemas.openxmlformats.org/wordprocessingml/2006/main')
+                    r = OxmlElement('w:r')
+                    rPr = OxmlElement('w:rPr')
+                    rPr.append(OxmlElement('w:rStyle'))
+                    r.append(rPr)
+                    r.text = text
+                    hyperlink.append(r)
+                    doc_paragraph._element.append(hyperlink)
+
+        # After bold and hyperlinks, process italic (<i>...</i>) formatting
+        for run in runs:
+            if run.startswith('<i>'):
+                run_text = run[3:-4]  # Remove <i> and </i>
+                doc_paragraph.add_run(run_text).italic = True
+
+        # Process bullet points (<ul><li>...</li></ul>)
+        for run in runs:
+            if run.startswith('<ul>'):
+                # Process bullet points (unordered list)
+                items = re.findall(r'<li>(.*?)</li>', run)
+                for item in items:
+                    doc_paragraph = doc.add_paragraph(item, style='ListBullet')
+            else:
+                doc_paragraph.add_run(run)
+
+    doc.save(doc_filename)
 
 def generate_runbook_from_prompt(
     prompt: str,
@@ -155,17 +242,10 @@ def generate_runbook_from_prompt(
     doc_filename: str
 ):
     """
-    Reusable Streamlit function to handle LLM completion and export a DOCX file.
+    Reusable Streamlit function to handle LLM completion and export a DOCX or HTML file.
     """
     unique_key = f"{button_text.lower().replace(' ', '_')}_button"
     clicked = st.button(button_text, key=unique_key)
-
-    # Debug section
-    #st.write("🔍 Debug info:")
-    #st.write("- Button clicked:", clicked)
-    #st.write("- user_confirmation:", st.session_state.get("user_confirmation"))
-    #st.write("- Prompt present:", bool(prompt))
-    #st.write("📋 Session State:", dict(st.session_state))
 
     if clicked:
         st.write("✅ Button was clicked")
@@ -186,20 +266,34 @@ def generate_runbook_from_prompt(
                 st.success(f"{doc_heading} generated successfully!")
                 st.write(output)
 
+                # Format the output into HTML-like format
                 formatted_output = format_output_for_docx(output)
 
-                doc = Document()
-                doc.add_heading(doc_heading, 0)
-                doc.add_paragraph(formatted_output)
-                doc.save(doc_filename)
+                # Saving to DOCX
+                if doc_filename.endswith(".docx"):
+                    save_docx_from_formatted_text(formatted_output, doc_filename, doc_heading)
 
-                with open(doc_filename, "rb") as f:
-                    st.download_button(
-                        label="📄 Download DOCX",
-                        data=f,
-                        file_name=doc_filename,
-                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                    )
+                    with open(doc_filename, "rb") as f:
+                        st.download_button(
+                            label="📄 Download DOCX",
+                            data=f,
+                            file_name=doc_filename,
+                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        )
+                # Saving to HTML (Optional for HTML output)
+                elif doc_filename.endswith(".html"):
+                    html_content = f"<html><head><title>{doc_heading}</title></head><body>{formatted_output}</body></html>"
+
+                    with open(doc_filename, "w") as f:
+                        f.write(html_content)
+
+                    with open(doc_filename, "rb") as f:
+                        st.download_button(
+                            label="📄 Download HTML",
+                            data=f,
+                            file_name=doc_filename,
+                            mime="text/html"
+                        )
 
             except Exception as e:
                 st.error(f"❌ Failed to generate runbook: {str(e)}")
@@ -822,7 +916,7 @@ def home_debug():
         api_key=os.getenv("MISTRAL_TOKEN"),
         button_text="Complete Level 1 Mission",
         doc_heading="Home Utilities Emergency Runbook",
-        doc_filename="home_utilities_emergency.docx"
+        doc_filename="home_utilities_emergency.html"
     )
     st.write("🟢 After button render")
 
