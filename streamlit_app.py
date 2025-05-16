@@ -1813,37 +1813,38 @@ def emergency_kit_critical_documents():
     if selected_category:
         st.write(f'You selected **{selected_category}**')
 
-        ms_key = f"multiselect_{selected_category.replace(' ', '_')}"
-        picks = st.multiselect(
-            f'Select documents from {selected_category}:',
-            options=documents[selected_category],
-            default=st.session_state.selected_documents.get(selected_category, []),
-            key=ms_key
-        )
+        # 2) Action buttons placed before the multiselect
+        col1, col2 = st.columns(2)
+        if col1.button('Add more categories', key="btn_add_more"):
+            st.info("Pick another category above.")
+        if col2.button('Finalize and Save All Selections', key="btn_finalize"):
+            st.session_state.finalized = True
 
-        # save
-        st.session_state.selected_documents[selected_category] = picks
+        # 3) Multi-select segmented control via horizontal checkboxes
+        options = documents[selected_category]
+        default = st.session_state.selected_documents.get(selected_category, [])
+        cols = st.columns(len(options))
+        new_picks = []
+        for idx, opt in enumerate(options):
+            # each checkbox lives in its own column
+            checked = cols[idx].checkbox(
+                opt,
+                value=(opt in default),
+                key=f"chk_{selected_category}_{idx}"
+            )
+            if checked:
+                new_picks.append(opt)
 
-        # show
-        st.write("Current picks:")
-        for d in picks:
-            st.write(f"– {d}")
+        # save back
+        st.session_state.selected_documents[selected_category] = new_picks
 
-    # 3) Buttons
-    if st.button('Add more categories', key="btn_add_more"):
-        st.info("Pick another category above.")
-
-    if st.button('Finalize and Save All Selections', key="btn_finalize"):
-        st.session_state.finalized = True
-
-    # 4) If finalized, show all
+    # 5) If finalized, show all
     if st.session_state.get("finalized", False):
         st.header("✅ All Your Selections")
         for cat, docs in st.session_state.selected_documents.items():
             st.subheader(cat)
             for d in docs:
                 st.write(f"• {d}")
-
 
 def review_selected_documents():
     saved = st.session_state.get("selected_documents", {})
@@ -1907,68 +1908,70 @@ def collect_document_details():
 
         st.subheader(category)
         for doc in docs:
-            st.markdown(f"**{doc}**")
+            # initialize storage for this doc
             details = st.session_state.document_details.setdefault(doc, {})
 
-            # 1a) Physical copies
-            details["physical_storage_locations"] = st.multiselect(
-                "1a. Where are physical copies stored?",
-                options=PHYSICAL_STORAGE_OPTIONS,
-                default=details.get("physical_storage_locations", []),
-                key=f"{doc}_physical_storage"
-            )
+            # Each document gets its own collapsible
+            with st.expander(f"{doc}", expanded=False):
+                # 1a) Physical copies
+                details["physical_storage_locations"] = st.multiselect(
+                    "1a. Where are physical copies stored?",
+                    options=PHYSICAL_STORAGE_OPTIONS,
+                    default=details.get("physical_storage_locations", []),
+                    key=f"{doc}_physical_storage"
+                )
 
-            # 1b) Digital copies
-            details["digital_storage_locations"] = st.multiselect(
-                "1b. Where are digital copies stored? (If avialable)",
-                options=DIGITAL_STORAGE_OPTIONS,
-                default=details.get("digital_storage_locations", []),
-                key=f"{doc}_digital_storage"
-            )
+                # 1b) Digital copies
+                details["digital_storage_locations"] = st.multiselect(
+                    "1b. Where are digital copies stored? (If available)",
+                    options=DIGITAL_STORAGE_OPTIONS,
+                    default=details.get("digital_storage_locations", []),
+                    key=f"{doc}_digital_storage"
+                )
 
-            # 2a) Physical access instructions
-            details["physical_access_instructions"] = st.text_area(
-                "2a. Instructions to access physical copies in an emergency:",
-                value=details.get("physical_access_instructions", ""),
-                key=f"{doc}_physical_access"
-            )
+                # 2a) Physical access instructions
+                details["physical_access_instructions"] = st.text_area(
+                    "2a. Instructions to access physical copies in an emergency:",
+                    value=details.get("physical_access_instructions", ""),
+                    key=f"{doc}_physical_access"
+                )
 
-            # 2b) Digital access instructions
-            details["digital_access_instructions"] = st.text_area(
-                "2b. Instructions to access digital copies in an emergency (If avialable):",
-                value=details.get("digital_access_instructions", ""),
-                key=f"{doc}_digital_access"
-            )
+                # 2b) Digital access instructions
+                details["digital_access_instructions"] = st.text_area(
+                    "2b. Instructions to access digital copies in an emergency (If available):",
+                    value=details.get("digital_access_instructions", ""),
+                    key=f"{doc}_digital_access"
+                )
 
-            # 3a) Emergency Contact physical access
-            details["contact_physical_access"] = st.radio(
-                "3a. Does your Emergency Contact have access to your physical copies?",
-                options=["Yes", "No"],
-                index=0 if details.get("contact_physical_access", "Yes") == "Yes" else 1,
-                key=f"{doc}_contact_physical_access"
-            )
+                # 3a) Contact physical access
+                details["contact_physical_access"] = st.radio(
+                    "3a. Does your Emergency Contact have access to your physical copies?",
+                    options=["Yes", "No"],
+                    index=0 if details.get("contact_physical_access", "Yes") == "Yes" else 1,
+                    key=f"{doc}_contact_physical_access"
+                )
 
-            # 3b) Emergency Contact digital access
-            details["contact_digital_access"] = st.radio(
-                "3b. Does your Emergency Contact have access to your digital copies (If avialable)?",
-                options=["Yes", "No"],
-                index=0 if details.get("contact_digital_access", "Yes") == "Yes" else 1,
-                key=f"{doc}_contact_digital_access"
-            )
+                # 3b) Contact digital access
+                details["contact_digital_access"] = st.radio(
+                    "3b. Does your Emergency Contact have access to your digital copies?",
+                    options=["Yes", "No"],
+                    index=0 if details.get("contact_digital_access", "Yes") == "Yes" else 1,
+                    key=f"{doc}_contact_digital_access"
+                )
 
-            # 4a) Instructions for Contact – physical
-            details["contact_physical_instructions"] = st.text_area(
-                "4a. Instructions for your Emergency Contact to access physical copies:",
-                value=details.get("contact_physical_instructions", ""),
-                key=f"{doc}_contact_physical_instructions"
-            )
+                # 4a) Instructions for Contact – physical
+                details["contact_physical_instructions"] = st.text_area(
+                    "4a. Instructions for your Emergency Contact to access physical copies:",
+                    value=details.get("contact_physical_instructions", ""),
+                    key=f"{doc}_contact_physical_instructions"
+                )
 
-            # 4b) Instructions for Contact – digital
-            details["contact_digital_instructions"] = st.text_area(
-                "4b. Instructions for your Emergency Contact to access digital copies (If avialable):",
-                value=details.get("contact_digital_instructions", ""),
-                key=f"{doc}_contact_digital_instructions"
-            )
+                # 4b) Instructions for Contact – digital
+                details["contact_digital_instructions"] = st.text_area(
+                    "4b. Instructions for your Emergency Contact to access digital copies (If available):",
+                    value=details.get("contact_digital_instructions", ""),
+                    key=f"{doc}_contact_digital_instructions"
+                )
 
             st.markdown("---")
 
