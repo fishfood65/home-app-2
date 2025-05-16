@@ -126,6 +126,7 @@ def main():
 
     elif section == "Level 5":
         st.subheader("🚀 Level 5 Launch")
+        emergency_kit_critical_documents()
 
     elif section == "Bonus Level":
         st.subheader("🎁 Bonus Level Content")
@@ -1361,6 +1362,7 @@ def mail_trash_handling():
         doc_heading="Home Emergency Runbook for Cartakers and Guests",
         doc_filename="home_runbook_cartakers.docx"
     )
+##### Level 4 - Home Security and Services
 
 def home_security():
     st.write("💝 Security-Conscious")
@@ -1626,6 +1628,126 @@ def security_convenience_ownership():
         doc_heading="Comprehensive Housekeeping Runbook",
         doc_filename="housekeeping_runbook.docx"
     )
+##### Level 5 - Emergency Kit Critical Documents
+
+def emergency_kit_critical_documents():
+    # Define categories and the corresponding documents
+    documents = {
+        'Identification Documents': [
+            'Government-issued ID (Driver’s license, state ID, or passport)',
+            'Social Security Card',
+            'Birth Certificates',
+            'Marriage/Divorce Certificates',
+            'Citizenship/Immigration Documents'
+        ],
+        'Health and Medical Documents': [
+            'Health Insurance Cards',
+            'Prescription Medications List',
+            'Vaccination Records',
+            'Emergency Medical Information',
+            'Medical Power of Attorney'
+        ],
+        'Financial Documents': [
+            'Bank Account Information',
+            'Credit Cards/Debit Cards',
+            'Checkbook',
+            'Tax Returns (Last Year’s)',
+            'Insurance Policies (Auto, Health, Home, Life, etc.)',
+            'Investment Documents'
+        ],
+        'Homeownership or Rental Documents': [
+            'Deed or Lease Agreement',
+            'Mortgage or Rent Payment Records',
+            'Home Insurance Policy'
+        ],
+        'Legal Documents': [
+            'Will or Living Will',
+            'Power of Attorney',
+            'Property Title and Vehicle Titles',
+            'Child Custody or Adoption Papers'
+        ],
+        'Emergency Contact Information': [
+            'Contact List',
+            'Emergency Plan'
+        ],
+        'Travel Documents': [
+            'Passport',
+            'Travel Itinerary'
+        ],
+        'Educational Documents': [
+            'School Records',
+            'Diplomas and Degrees',
+            'Certificates and Licenses'
+        ],
+        'Digital Backup': [
+            'USB Flash Drive or External Hard Drive',
+            'Cloud Storage'
+        ],
+        'Miscellaneous Documents': [
+            'Pet Records',
+            'Photos of Important Belongings',
+            'Bankruptcy or Legal Filings'
+        ]
+    }
+
+    # Initialize session state for storing selections if not already initialized
+    if "selected_documents" not in st.session_state:
+        st.session_state.selected_documents = {}
+
+    # Step 1: Prompt the user to select a category
+    selected_category = st.selectbox(
+        'Select a document category to view:',
+        options=list(documents.keys())
+    )
+    
+    # Step 2: Display a multi-select based on the selected category
+    if selected_category:
+        st.write(f'You selected the category: **{selected_category}**')
+        selected_docs_for_category = st.multiselect(
+            f'Select documents from the **{selected_category}** category:',
+            options=documents[selected_category],
+            default=st.session_state.selected_documents.get(selected_category, [])
+        )
+        
+        # Step 3: Save the selected documents to session state for the chosen category
+        if selected_docs_for_category:
+            st.session_state.selected_documents[selected_category] = selected_docs_for_category
+        
+        # Display the current selections for that category
+        st.write(f'### Documents selected in **{selected_category}**:')
+        for doc in selected_docs_for_category:
+            st.write(f' - {doc}')
+    
+    # Step 4: Option to add more categories or finalize
+    add_more = st.button('Add more categories')
+    if add_more:
+        st.write("Feel free to select another category.")
+    
+    # Finalize button to save all selections
+    finalize = st.button('Finalize and Save All Selections')
+    
+    if finalize:
+        st.write('### All Selections:')
+        for category, docs in st.session_state.selected_documents.items():
+            st.write(f'**{category}:**')
+            for doc in docs:
+                st.write(f' - {doc}')
+        st.session_state.finalized = True
+        st.write("All your selections have been saved!")
+
+    # Show saved selections
+    if "finalized" in st.session_state and st.session_state.finalized:
+        st.write("### Your final saved selections:")
+        for category, docs in st.session_state.selected_documents.items():
+            st.write(f'**{category}:**')
+            for doc in docs:
+                st.write(f' - {doc}')
+
+# Call the function to display the multiselect in the Streamlit app
+
+
+
+
 
 
 ### Call App Functions
