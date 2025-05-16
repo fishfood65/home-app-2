@@ -862,6 +862,59 @@ Please don't add a title to the runbook.
 Please format the runbook clearly with headers and bullet points. Use “⚠️ Not provided” as a flag for incomplete or missing info that should be reviewed.
 """.strip()
 
+#### Emergency Kit Documents ####
+
+def emergency_kit_document_prompt():
+    intro = (
+        "Welcome to your Emergency Document Kit. "
+        "This concise guide tells you—and your designated emergency contact—"
+        "where your vital documents are stored and how to retrieve them quickly in an urgent situation."
+    )
+    selected_documents = st.session_state.get("selected_documents", {})
+    document_details   = st.session_state.get("document_details", {})
+    sel_docs_json = json.dumps(selected_documents, indent=2)
+    details_json  = json.dumps(document_details, indent=2)
+
+    return f"""
+
+{intro}
+
+You are an expert at creating clear, action-ready Emergency Document Kits. 
+You will be provided with two Python variables in JSON form:
+    selected_documents = {sel_docs_json}
+    document_details = {details_json}
+
+**Your task**  
+1. **Physical storage first**  
+   - Tally across _all_ documents how many are kept in each physical location.  
+   - Sort those physical locations from most-used to least-used.  
+   - For each physical location, output a Markdown section:
+     ```
+     ## <Physical Location> (n documents)
+     - **<Document Name>**  
+       • Category: <Category>  
+       • My access: <physical_access_instructions>  
+       • Contact access: <Yes/No> – <contact_physical_instructions> (only if Yes)
+     ```
+2. **Then digital storage**  
+   - Tally across _all_ documents how many are kept in each digital location.  
+   - Sort those digital locations from most-used to least-used.  
+   - For each digital location, output a Markdown section:
+     ```
+     ## <Digital Location> (n documents)
+     - **<Document Name>**  
+       • Category: <Category>  
+       • My access: <digital_access_instructions>  
+       • Contact access: <Yes/No> – <contact_digital_instructions> (only if Yes)
+     ```
+3. Skip any location with zero documents.  
+4. Keep each bullet under **25 words**.  
+5. Output **only** the final Markdown—no extra commentary or explanation.
+""".strip()
+
+
+
+
 
 ###### Main Functions that comprise of the Levels
 
@@ -1917,6 +1970,27 @@ def collect_document_details():
 
     if st.button("Save all document details", key="btn_save_details"):
         st.success("✅ All document details saved!")
+
+def generate_kit_tab():
+    """Renders the Generate Kit UI and uses generate_runbook_from_prompt to run the LLM and export."""
+    st.header("📦 Generate Emergency Document Kit")
+
+    # 1) Build and show the prompt (optional—you can hide this if you don't want the user to see it)
+    prompt = emergency_kit_document_prompt()
+    with st.expander("Preview LLM prompt", expanded=False):
+        st.code(prompt, language="markdown")
+
+    # 2) Ask the user to confirm before sending
+    st.checkbox("✅ I confirm this prompt is correct", key="user_confirmation")
+
+    # 3) Delegate to your reusable runbook function
+    generate_runbook_from_prompt(
+        prompt=prompt,
+        api_key=os.getenv("MISTRAL_TOKEN"),
+        button_text="Generate Emergency Kit Runbook",
+        doc_heading="Emergency Document Kit",
+        doc_filename="emergency_document_kit.docx"
+    )
 
 ### Call App Functions
 if __name__ == "__main__":
