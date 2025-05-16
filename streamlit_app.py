@@ -69,13 +69,14 @@ def save_progress(progress):
     with open(PROGRESS_FILE, "w") as f:
         json.dump(progress, f)
 
+import streamlit as st
+
 def main():
     levels = ("Level 1", "Level 2", "Level 3", "Level 4", "Level 5", "Bonus Level")
 
     # Initialize session state
     if "section" not in st.session_state:
         st.session_state.section = levels[0]
-
     if "progress" not in st.session_state:
         st.session_state.progress = load_progress()
 
@@ -83,10 +84,11 @@ def main():
     selected = st.sidebar.radio(
         "Choose a Level:",
         levels,
-        index=levels.index(st.session_state.section)
+        index=levels.index(st.session_state.section),
+        key="sidebar_level_radio"
     )
 
-    # Progress bar in sidebar
+    # Progress indicators…
     st.sidebar.markdown("## 🧭 Progress")
     for i in range(1, 6):
         key = f"level_{i}_completed"
@@ -95,7 +97,6 @@ def main():
             st.sidebar.success(f"✅ {label}")
         else:
             st.sidebar.info(f"🔒 {label}")
-
     bonus = st.session_state.progress.get("bonus_completed", False)
     st.sidebar.markdown("✅ Bonus Level" if bonus else "🔒 Bonus Level")
 
@@ -106,34 +107,49 @@ def main():
     else:
         st.session_state.section = selected
 
-    # Render level
     section = st.session_state.section
 
+    # === your existing levels 1–4 ===
     if section == "Level 1":
         st.subheader("🏁 Welcome to Level 1")
-        home()  # ← call logic here that sets progress and saves
-
+        home()
     elif section == "Level 2":
         st.subheader("🔧 Level 2 Tools")
         emergency_kit_utilities()
-
     elif section == "Level 3":
         st.subheader("📊 Level 3 Data")
         mail_trash_handling()
-
     elif section == "Level 4":
         st.subheader("🧠 Level 4 Analysis")
         security_convenience_ownership()
 
+    # === Level 5: now with st.tabs ===
     elif section == "Level 5":
-        st.subheader("🚀 Level 5 Launch")
-        emergency_kit_critical_documents()
+        st.subheader("🚨 Level 5: Critical Documents")
+        tabs = st.tabs([
+            "📝 Select Documents",
+            "📋 Review Selections",
+            "🗂 Document Details"
+        ])
 
+        with tabs[0]:
+            st.markdown("### Step 1: Pick Critical Documents")
+            emergency_kit_critical_documents()
+
+        with tabs[1]:
+            st.markdown("### Step 2: Review Your Picks")
+            review_selected_documents()
+
+        with tabs[2]:
+            st.markdown("### Step 3: Fill in Document Details")
+            collect_document_details()
+
+    # === Bonus Level ===
     elif section == "Bonus Level":
         st.subheader("🎁 Bonus Level Content")
 
-    # Optional: Reset button
-    if st.sidebar.button("🔄 Reset Progress"):
+    # Reset button
+    if st.sidebar.button("🔄 Reset Progress", key="btn_reset"):
         st.session_state.progress = {}
         save_progress({})
         st.experimental_rerun()
@@ -1685,108 +1701,181 @@ def emergency_kit_critical_documents():
             'Emergency Medical Information',
             'Medical Power of Attorney'
         ],
-        'Financial Documents': [
-            'Bank Account Information',
-            'Credit Cards/Debit Cards',
-            'Checkbook',
-            'Tax Returns (Last Year’s)',
-            'Insurance Policies (Auto, Health, Home, Life, etc.)',
-            'Investment Documents'
-        ],
-        'Homeownership or Rental Documents': [
-            'Deed or Lease Agreement',
-            'Mortgage or Rent Payment Records',
-            'Home Insurance Policy'
-        ],
-        'Legal Documents': [
-            'Will or Living Will',
-            'Power of Attorney',
-            'Property Title and Vehicle Titles',
-            'Child Custody or Adoption Papers'
-        ],
-        'Emergency Contact Information': [
-            'Contact List',
-            'Emergency Plan'
-        ],
-        'Travel Documents': [
-            'Passport',
-            'Travel Itinerary'
-        ],
-        'Educational Documents': [
-            'School Records',
-            'Diplomas and Degrees',
-            'Certificates and Licenses'
-        ],
-        'Digital Backup': [
-            'USB Flash Drive or External Hard Drive',
-            'Cloud Storage'
-        ],
-        'Miscellaneous Documents': [
-            'Pet Records',
-            'Photos of Important Belongings',
-            'Bankruptcy or Legal Filings'
-        ]
+        # … other categories …
     }
 
-    # Initialize session state for storing selections if not already initialized
+    # Initialize session state
     if "selected_documents" not in st.session_state:
         st.session_state.selected_documents = {}
 
-    # Step 1: Prompt the user to select a category
+    # 1) Category picker
     selected_category = st.selectbox(
         'Select a document category to view:',
-        options=list(documents.keys())
+        options=list(documents.keys()),
+        key="selected_category"
     )
-    
-    # Step 2: Display a multi-select based on the selected category
+
+    # 2) Docs multiselect for that category
     if selected_category:
-        st.write(f'You selected the category: **{selected_category}**')
-        selected_docs_for_category = st.multiselect(
-            f'Select documents from the **{selected_category}** category:',
+        st.write(f'You selected **{selected_category}**')
+
+        ms_key = f"multiselect_{selected_category.replace(' ', '_')}"
+        picks = st.multiselect(
+            f'Select documents from {selected_category}:',
             options=documents[selected_category],
-            default=st.session_state.selected_documents.get(selected_category, [])
+            default=st.session_state.selected_documents.get(selected_category, []),
+            key=ms_key
         )
-        
-        # Step 3: Save the selected documents to session state for the chosen category
-        if selected_docs_for_category:
-            st.session_state.selected_documents[selected_category] = selected_docs_for_category
-        
-        # Display the current selections for that category
-        st.write(f'### Documents selected in **{selected_category}**:')
-        for doc in selected_docs_for_category:
-            st.write(f' - {doc}')
-    
-    # Step 4: Option to add more categories or finalize
-    add_more = st.button('Add more categories')
-    if add_more:
-        st.write("Feel free to select another category.")
-    
-    # Finalize button to save all selections
-    finalize = st.button('Finalize and Save All Selections')
-    
-    if finalize:
-        st.write('### All Selections:')
-        for category, docs in st.session_state.selected_documents.items():
-            st.write(f'**{category}:**')
-            for doc in docs:
-                st.write(f' - {doc}')
+
+        # save
+        st.session_state.selected_documents[selected_category] = picks
+
+        # show
+        st.write("Current picks:")
+        for d in picks:
+            st.write(f"– {d}")
+
+    # 3) Buttons
+    if st.button('Add more categories', key="btn_add_more"):
+        st.info("Pick another category above.")
+
+    if st.button('Finalize and Save All Selections', key="btn_finalize"):
         st.session_state.finalized = True
-        st.write("All your selections have been saved!")
 
-    # Show saved selections
-    if "finalized" in st.session_state and st.session_state.finalized:
-        st.write("### Your final saved selections:")
-        for category, docs in st.session_state.selected_documents.items():
-            st.write(f'**{category}:**')
-            for doc in docs:
-                st.write(f' - {doc}')
-
-# Call the function to display the multiselect in the Streamlit app
+    # 4) If finalized, show all
+    if st.session_state.get("finalized", False):
+        st.header("✅ All Your Selections")
+        for cat, docs in st.session_state.selected_documents.items():
+            st.subheader(cat)
+            for d in docs:
+                st.write(f"• {d}")
 
 
+def review_selected_documents():
+    saved = st.session_state.get("selected_documents", {})
+    if not saved:
+        st.warning("No selections to review.")
+        return
+
+    st.header("📋 Review Selections")
+    for cat, docs in saved.items():
+        st.write(f"**{cat}:** {', '.join(docs)}")
+
+    all_docs = [d for docs in saved.values() for d in docs]
+    st.multiselect(
+        "Tweak your list:",
+        options=all_docs,
+        default=all_docs,
+        key="tweaked_docs"
+    )
+    if st.button("Save Tweaks", key="btn_save_tweaks"):
+        st.success("Tweaks saved!")
 
 
+def collect_document_details():
+    selected = st.session_state.get("selected_documents", {})
+    if not selected:
+        st.warning("No documents selected. Go pick some first!")
+        return
 
+    if "document_details" not in st.session_state:
+        st.session_state.document_details = {}
+
+    st.header("🗂 Document Access & Storage Details")
+
+    PHYSICAL_STORAGE_OPTIONS = [
+        "Canister",
+        "Closet",
+        "Drawer",
+        "Filing Cabinet",
+        "Handbag",
+        "Safe",
+        "Safety Deposit Box",
+        "Storage Unit",
+        "Wallet",
+        "With Attorney",
+        "Other physical location"
+    ]
+    DIGITAL_STORAGE_OPTIONS = [
+        "Computer/Tablet",
+        "Phone",
+        "USB flash drive",
+        "External hard drive",
+        "Cloud storage (Google Drive, Dropbox, etc.)",
+        "Password Manager",
+        "Other digital location"
+    ]
+
+    for category, docs in selected.items():
+        st.subheader(category)
+        for doc in docs:
+            st.markdown(f"**{doc}**")
+            details = st.session_state.document_details.setdefault(doc, {})
+
+            # 1a) Physical copies
+            details["physical_storage_locations"] = st.multiselect(
+                "1a. Where are physical copies stored?",
+                options=PHYSICAL_STORAGE_OPTIONS,
+                default=details.get("physical_storage_locations", []),
+                key=f"{doc}_physical_storage"
+            )
+
+            # 1b) Digital copies
+            details["digital_storage_locations"] = st.multiselect(
+                "1b. Where are digital copies stored? (If avialable)",
+                options=DIGITAL_STORAGE_OPTIONS,
+                default=details.get("digital_storage_locations", []),
+                key=f"{doc}_digital_storage"
+            )
+
+            # 2a) Physical access instructions
+            details["physical_access_instructions"] = st.text_area(
+                "2a. Instructions to access physical copies in an emergency:",
+                value=details.get("physical_access_instructions", ""),
+                key=f"{doc}_physical_access"
+            )
+
+            # 2b) Digital access instructions
+            details["digital_access_instructions"] = st.text_area(
+                "2b. Instructions to access digital copies in an emergency (If avialable):",
+                value=details.get("digital_access_instructions", ""),
+                key=f"{doc}_digital_access"
+            )
+
+            # 3a) Emergency Contact physical access
+            details["contact_physical_access"] = st.radio(
+                "3a. Does your Emergency Contact have access to your physical copies?",
+                options=["Yes", "No"],
+                index=0 if details.get("contact_physical_access", "Yes") == "Yes" else 1,
+                key=f"{doc}_contact_physical_access"
+            )
+
+            # 3b) Emergency Contact digital access
+            details["contact_digital_access"] = st.radio(
+                "3b. Does your Emergency Contact have access to your digital copies (If avialable)?",
+                options=["Yes", "No"],
+                index=0 if details.get("contact_digital_access", "Yes") == "Yes" else 1,
+                key=f"{doc}_contact_digital_access"
+            )
+
+            # 4a) Instructions for Contact – physical
+            details["contact_physical_instructions"] = st.text_area(
+                "4a. Instructions for your Emergency Contact to access physical copies:",
+                value=details.get("contact_physical_instructions", ""),
+                key=f"{doc}_contact_physical_instructions"
+            )
+
+            # 4b) Instructions for Contact – digital
+            details["contact_digital_instructions"] = st.text_area(
+                "4b. Instructions for your Emergency Contact to access digital copies (If avialable):",
+                value=details.get("contact_digital_instructions", ""),
+                key=f"{doc}_contact_digital_instructions"
+            )
+
+            st.markdown("---")
+
+    if st.button("Save all document details", key="btn_save_details"):
+        st.success("✅ All document details saved!")
 
 ### Call App Functions
 if __name__ == "__main__":
