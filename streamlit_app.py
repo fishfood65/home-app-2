@@ -142,21 +142,21 @@ def main():
 
     # === your existing levels 1–4 ===
     if section == "Level 1":
-        st.subheader("🏁 Welcome to Level 1")
+        st.subheader("🏁 Welcome to Level 1 Home Basics")
         home()
     elif section == "Level 2":
-        st.subheader("🔧 Level 2 Tools")
+        st.subheader("🚨 Level 2 Emergency Preparedness")
         emergency_kit_utilities()
     elif section == "Level 3":
-        st.subheader("📊 Level 3 Data")
+        st.subheader("📬 Level 3 Mail & Trash Handling")
         mail_trash_handling()
     elif section == "Level 4":
-        st.subheader("🧠 Level 4 Analysis")
+        st.subheader("🏡 Level 4 Home Services")
         security_convenience_ownership()
 
     # === Level 5: now with st.tabs ===
     elif section == "Level 5":
-        st.subheader("🚨 Level 5: Critical Documents")
+        st.subheader("💼 Level 5 Critical Documents")
         tabs = st.tabs([
             "📝 Select Documents",
             "📋 Review Selections",
@@ -182,6 +182,7 @@ def main():
     # === Bonus Level ===
     elif section == "Bonus Level":
         st.subheader("🎁 Bonus Level Content")
+        bonus_level()
 
     # Reset button
     if st.sidebar.button("🔄 Reset Progress", key="btn_reset"):
@@ -1179,7 +1180,6 @@ def homeowner_kit_stock():
     return selected
 
 def emergency_kit():
-    st.write("Emergency Kit Status")
 
     # Use st.radio to create a dropdown menu for selecting between renting or owning
     emergency_kit_status = st.radio(
@@ -1276,7 +1276,6 @@ def emergency_kit_utilities():
 ##### Level 3 - Mail Handling and Trash
 
 def mail():
-    st.subheader("📬 Mail Handling Instructions")
 
     if 'mail_info' not in st.session_state:
         st.session_state.mail_info = {}
@@ -1340,7 +1339,6 @@ def mail():
         st.info("No mail handling information saved yet.")
 
 def trash_handling():
-    st.markdown("## 🗑️ Trash Disposal Instructions")
 
     if 'trash_info' not in st.session_state:
         st.session_state.trash_info = {}
@@ -1536,59 +1534,69 @@ def trash_handling():
                 st.image(Image.open(io.BytesIO(image_bytes)), caption=label)
 
 def mail_trash_handling():
-# Step 1: Input fields
-    mail ()
-    trash_handling()
-    # Step 2: Preview prompt
+    st.write("📬 Level 3: Mail & Trash Handling")
 
-    # Move this outside the expander
-    user_confirmation = st.checkbox("✅ Confirm AI Prompt")
-    st.session_state["user_confirmation"] = user_confirmation # store confirmation in session
+    # Ensure session_state keys exist
+    st.session_state.progress.setdefault("level_3_completed", False)
+    st.session_state.setdefault("user_confirmation", False)
+    st.session_state.setdefault("prompt_emergency", None)
+    st.session_state.setdefault("prompt_mail_trash", None)
 
-    st.session_state.progress["level_3_completed"] = True
-    save_progress(st.session_state.progress)
+    # Create three tabs
+    tab1, tab2, tab3 = st.tabs([
+        "📬 Mail Input",
+        "🗑️ Trash Input",
+        "🤖 Review & Generate"
+    ])
 
-    if user_confirmation:
-        prompt_emergency = emergency_kit_utilities_runbook_prompt()
-        prompt_mail_trash = mail_trash_runbook_prompt()
-        st.session_state["prompt_emergency"] = prompt_emergency
-        st.session_state["prompt_mail_trash"] = prompt_mail_trash
-    else:
-        st.session_state["prompt_emergency"] = None
-        st.session_state["prompt_mail_trash"] = None
+    # ─── Tab 1: Mail Input ─────────────────────────────────────
+    with tab1:
+        st.subheader("Step 1: 📬 Mail Handling Instructions")
+        mail()  # your existing mail() form
 
-# Show prompt in expander
-    with st.expander("AI Prompt Preview (Optional)"):
-        if st.session_state.get("prompt_emergency"):
+    # ─── Tab 2: Trash Input ────────────────────────────────────
+    with tab2:
+        st.subheader("Step 2: 🗑️ Trash Disposal Instructions")
+        trash_handling()  # your existing trash_handling() form
+
+    # ─── Tab 3: Prompt Review & Generate ───────────────────────
+    with tab3:
+        st.subheader("Step 3: Review & Generate Runbook")
+
+        # Confirm before generating prompts
+        confirmed = st.checkbox(
+            "✅ Confirm AI Prompt",
+            value=st.session_state.user_confirmation,
+            key="mail_trash_confirm"
+        )
+        st.session_state.user_confirmation = confirmed
+
+        if confirmed:
+            # mark level complete & build prompts
+            st.session_state.progress["level_3_completed"] = True
+            save_progress(st.session_state.progress)
+            st.session_state.prompt_emergency = emergency_kit_utilities_runbook_prompt()
+            st.session_state.prompt_mail_trash = mail_trash_runbook_prompt()
+
+            # Show prompt preview
             st.markdown("#### 🆘 Emergency + Utilities Prompt")
-            st.code(st.session_state["prompt_emergency"], language="markdown")
-        if st.session_state.get("prompt_mail_trash"):
+            st.code(st.session_state.prompt_emergency, language="markdown")
+
             st.markdown("#### 📬 Mail + Trash Prompt")
-            st.code(st.session_state["prompt_mail_trash"], language="markdown")
+            st.code(st.session_state.prompt_mail_trash, language="markdown")
 
-    # Step 3: Generate runbook using reusable function
-   # st.write("Next, click the button to generate your personalized utilities emergency runbook document:")
+            # Generate runbook button
+            generate_runbook_from_prompt_split(
+                prompt_emergency=st.session_state.prompt_emergency,
+                prompt_mail_trash=st.session_state.prompt_mail_trash,
+                api_key=os.getenv("MISTRAL_TOKEN"),
+                button_text="Complete Level 3 Mission",
+                doc_heading="Home Emergency Runbook for Caretakers and Guests",
+                doc_filename="home_runbook_caretakers.docx"
+            )
+        else:
+            st.info("Please confirm the AI prompt after entering your details in Tabs 1 and 2.")
 
-    # st.markdown("### 🧪 Debug Info")
-
-    # st.write("🔑 **API Key Loaded:**", "✅ Yes" if os.getenv("MISTRAL_TOKEN") else "❌ No")
-
-    # st.write("✅ **User Confirmed Prompt:**", st.session_state.get("user_confirmation", False))
-
-    # st.write("📄 **Emergency Prompt Exists:**", "✅ Yes" if st.session_state.get("prompt_emergency") else "❌ No")
-    # st.code(st.session_state.get("prompt_emergency", "⚠️ Emergency prompt not generated."), language="markdown")
-
-    # st.write("📬 **Mail & Trash Prompt Exists:**", "✅ Yes" if st.session_state.get("prompt_mail_trash") else "❌ No")
-    # st.code(st.session_state.get("prompt_mail_trash", "⚠️ Mail/Trash prompt not generated."), language="markdown")
-
-    generate_runbook_from_prompt_split(
-        prompt_emergency=st.session_state.get("prompt_emergency", ""),
-        prompt_mail_trash=st.session_state.get("prompt_mail_trash", ""),
-        api_key=os.getenv("MISTRAL_TOKEN"),
-        button_text="Complete Level 3 Mission",
-        doc_heading="Home Emergency Runbook for Cartakers and Guests",
-        doc_filename="home_runbook_cartakers.docx"
-    )
 ##### Level 4 - Home Security and Services
 
 def home_security():
@@ -1668,10 +1676,6 @@ def home_security():
         else:
             st.info("🔒 You indicated home security is not applicable.")
             st.session_state.home_security_info = {"home_security_applicable": False}
-
-import streamlit as st
-
-import streamlit as st
 
 def convenience_seeker():
     st.write("🧼 Quality-Oriented Household Services")
@@ -2491,6 +2495,75 @@ def generate_kit_tab():
         doc_heading="Emergency Document Kit",
         doc_filename="emergency_document_kit.docx"
     )
+
+##### Bonus - Additional Instructions for Guest/House Sitters
+
+def bonus_level():
+
+    # Initialize storage for bonus info
+    if 'bonus_info' not in st.session_state:
+        st.session_state.bonus_info = {}
+
+    # Home Maintenance
+    with st.expander("🏠 Home Maintenance", expanded=True):
+        info = st.session_state.bonus_info
+
+        info['maintenance_tasks'] = st.text_area(
+            "Provide a list of regular home maintenance tasks (e.g., changing light bulbs, checking smoke detectors, cleaning filters):",
+            value=info.get('maintenance_tasks', '')
+        )
+
+        info['appliance_instructions'] = st.text_area(
+            "Share instructions for operating and maintaining major appliances and systems (e.g., HVAC, water heater, stove, microwave, thermostat, dishwasher, washer, dryer):",
+            value=info.get('appliance_instructions', '')
+        )
+
+    # Home Rules and Preferences
+    with st.expander("📋 Home Rules & Preferences", expanded=False):
+        info = st.session_state.bonus_info
+
+        info['house_rules'] = st.text_area(
+            "Inform guests/housesitters about any specific rules or preferences regarding areas of the home, furniture, or appliances:",
+            value=info.get('house_rules', '')
+        )
+
+        info['cultural_practices'] = st.text_area(
+            "Share any cultural or religious practices guests/housesitters should be aware of:",
+            value=info.get('cultural_practices', '')
+        )
+
+    # Housekeeping & Cleaning
+    with st.expander("🧹 Housekeeping & Cleaning", expanded=False):
+        info = st.session_state.bonus_info
+
+        info['housekeeping_instructions'] = st.text_area(
+            "Provide instructions for basic housekeeping and cleaning routines, including where to find cleaning supplies:",
+            value=info.get('housekeeping_instructions', '')
+        )
+
+        info['cleaning_preferences'] = st.text_area(
+            "Share any specific cleaning preferences or routines you have:",
+            value=info.get('cleaning_preferences', '')
+        )
+
+    # Entertainment & Technology
+    with st.expander("🎮 Entertainment & Technology", expanded=False):
+        info = st.session_state.bonus_info
+
+        info['entertainment_info'] = st.text_area(
+            "Inform guests/housesitters about entertainment systems, streaming services, and how to operate them:",
+            value=info.get('entertainment_info', '')
+        )
+
+        info['device_instructions'] = st.text_area(
+            "Share instructions for using and charging personal devices (e.g., laptops, tablets):",
+            value=info.get('device_instructions', '')
+        )
+
+    # Save button
+    if st.button("💾 Save Bonus Level Info"):
+        st.session_state.bonus_info = st.session_state.bonus_info  # ensure persistence
+        st.success("✅ Bonus level information saved successfully!")
 
 ### Call App Functions
 if __name__ == "__main__":
