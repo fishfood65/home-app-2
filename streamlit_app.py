@@ -1,6 +1,6 @@
 import streamlit as st
 import re
-from mistralai import Mistral, UserMessage
+from mistralai import Mistral, UserMessage, SystemMessage
 from dotenv import load_dotenv
 import os
 import pandas as pd
@@ -53,9 +53,6 @@ else:
 #st.text(env_vars)
 
 # Main entry point of the app
-import streamlit as st
-import json
-import os
 
 PROGRESS_FILE = "user_progress.json"
 
@@ -68,8 +65,6 @@ def load_progress():
 def save_progress(progress):
     with open(PROGRESS_FILE, "w") as f:
         json.dump(progress, f)
-
-import streamlit as st
 
 def main():
     levels = ("Level 1", "Level 2", "Level 3", "Level 4", "Level 5", "Bonus Level")
@@ -221,8 +216,8 @@ def generate_runbook_from_prompt(
                 client = Mistral(api_key=api_key)
                 completion = client.chat.complete(
                     model="mistral-small-latest",
-                    messages=[UserMessage(content=prompt)],
-                    max_tokens=1500,
+                    messages=[SystemMessage(content=prompt)],
+                    max_tokens=2000,
                     temperature=0.5,
                 )
 
@@ -869,54 +864,105 @@ Please format the runbook clearly with headers and bullet points. Use “⚠️ 
 #### Emergency Kit Documents ####
 
 def emergency_kit_document_prompt():
+    """
+    Build the LLM prompt string from session_state, but first prune
+    document_details so that each document only includes the fields
+    for the storage locations it’s actually assigned to.
+    """
     intro = (
-        "Welcome to your Emergency Document Kit. "
-        "This concise guide tells you—and your designated emergency contact—"
-        "where your vital documents are stored and how to retrieve them quickly in an urgent situation."
+        "Welcome to your Emergency Document Kit.\n\n"
+        "- Reduces stress, and delivers peace of mind in a crisis.\n\n"
+        "How to read this document:\n"
+        "1. Start here for the value of the kit:\n\n"
+        "   • Provides clear, step-by-step guidance to locate and retrieve vital documents quickly in a crisis.\n"
+        "2. Scroll down to each storage location heading (e.g., “## Safe”)—"
+        "these are sorted by where most documents live first.\n"
+        "3. Under each location, you’ll find:\n\n"
+        "   • Location details (address or placement info)\n\n"
+        "   • Platform (if applicable, e.g., cloud service or password manager)\n\n"
+        "   • Access steps (what’s required in an emergency)\n\n"
+        "   • Contents notes (if there are multiple containers)\n\n"
+        "4. The final list shows only the documents stored there, with categories.\n"
+        "Keep this kit handy and review periodically to ensure accuracy."
     )
-    selected_documents = st.session_state.get("selected_documents", {})
-    document_details   = st.session_state.get("document_details", {})
-    sel_docs_json = json.dumps(selected_documents, indent=2)
-    details_json  = json.dumps(document_details, indent=2)
+
+    global_physical  = st.session_state.get("global_physical_storage", [])
+    global_digital   = st.session_state.get("global_digital_storage", [])
+    raw_details      = st.session_state.get("document_details", {})
+
+    # Build a filtered version
+    filtered_details = {}
+    for doc, details in raw_details.items():
+        assigned = details.get("assigned_storage", [])
+        fd = {"assigned_storage": assigned}
+
+        # for every other key in details, only keep it if:
+        # 1) it’s non-empty, and
+        # 2) its key starts with one of the assigned-location prefixes
+        for key, val in details.items():
+            if key == "assigned_storage" or not val:
+                continue
+            for loc in assigned:
+                prefix = loc.lower().replace(" ", "_").replace("/", "_") + "_"
+                if key.startswith(prefix):
+                    fd[key] = val
+                    break
+
+        filtered_details[doc] = fd
+
+    phys_json    = json.dumps(global_physical, indent=2)
+    digi_json    = json.dumps(global_digital, indent=2)
+    details_json = json.dumps(filtered_details,  indent=2)
 
     return f"""
+You are an expert at creating clear, action-ready Emergency Document Kits.
+
+Below is the **introductory section** you must include exactly as written at the top of your output (no backticks):
 
 {intro}
 
-You are an expert at creating clear, action-ready Emergency Document Kits. 
-You will be provided with two Python variables in JSON form:
-    selected_documents = {sel_docs_json}
-    document_details = {details_json}
+You will then be provided with three Python variables in JSON form:
+
+global_physical_storage = {phys_json}  
+global_digital_storage  = {digi_json}  
+document_details        = {details_json}  
+
+> **Important:** Only use the `document_details` mapping—do **not** pull from any other list.
 
 **Your task**  
-1. **Physical storage first**  
-   - Tally across _all_ documents how many are kept in each physical location.  
-   - Sort those physical locations from most-used to least-used.  
-   - For each physical location, output a Markdown section:
-     ```
-     ## <Physical Location> (n documents)
-     - **<Document Name>**  
-       • Category: <Category>  
-       • My access: <physical_access_instructions>  
-       • Contact access: <Yes/No> – <contact_physical_instructions> (only if Yes)
-     ```
-2. **Then digital storage**  
-   - Tally across _all_ documents how many are kept in each digital location.  
-   - Sort those digital locations from most-used to least-used.  
-   - For each digital location, output a Markdown section:
-     ```
-     ## <Digital Location> (n documents)
-     - **<Document Name>**  
-       • Category: <Category>  
-       • My access: <digital_access_instructions>  
-       • Contact access: <Yes/No> – <contact_digital_instructions> (only if Yes)
-     ```
-3. Skip any location with zero documents.  
-4. Keep each bullet under **25 words**.  
-5. Output **only** the final Markdown—no extra commentary or explanation.
+1. Output the introductory section verbatim as the first lines.  
+2. Group all documents by storage location, showing physical first, then digital.  
+3. Within each location, list only the documents actually stored there and include **only** these subsections **when they have data**:
+   - **Location details:** the user-provided address or placement info  
+   - **Platform:** the service or tool used (if present)  
+   - **Access steps:** the emergency steps or authorizations required  
+   - **Contents:** if multiple, what each container holds  
+4. Sort locations by document count (most → least).  
+5. Skip any location with zero documents.  
+6. Format the rest in plain Markdown (no code fences), with one top-level heading per location:
+
+   ## <Storage Name> (n documents)
+
+   **Location details:**  
+   <location or branch_address>  
+
+   **Platform:**  
+   <platform name>  
+
+   **Access steps:**  
+   <access_steps>  
+
+   **Contents:**  
+   <contents note>  
+
+   **Documents stored:**  
+   - **<Document A>** (Category: <Category>)  
+   - **<Document B>** (Category: <Category>)
+
+*Omit any subsection line if that field is empty or not applicable.*
+
+Begin your response now.
 """.strip()
-
-
 
 
 
@@ -2177,6 +2223,25 @@ def collect_document_details():
                     "In an emergency, what steps and credentials are required for someone else to access the mobile application accounts holding key documents?:",
                     key=f"{key_base}_access_steps"
                 )
+
+    # Merge all storage‐location keys into document_details
+    for doc, details in st.session_state.document_details.items():
+        # for every storage the user selected
+        for storage in st.session_state.get("global_physical_storage", []) \
+                       + st.session_state.get("global_digital_storage", []):
+            key_base = storage.lower().replace(" ", "_").replace("/", "_")
+            # list every suffix you might have used
+            for suffix in [
+                "branch_address", "authorization",
+                "location", "business_address",
+                "attorney_instructions",
+                "access_steps", "contents",
+                "apps_and_contents", "platform"
+            ]:
+                full_key = f"{key_base}_{suffix}"
+                if full_key in st.session_state:
+                    # copy it into the per‐doc details dict
+                    details[full_key] = st.session_state[full_key]
 
     # Final Save
     if st.button("Save all document & storage details", key="btn_save_all"):

@@ -51,3 +51,4 @@ watchdog==6.0.0
 mistralai
 python-dotenv
 html2docx
+transformers
