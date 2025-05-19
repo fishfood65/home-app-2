@@ -1601,119 +1601,267 @@ def home_security():
         home_security_applicable = st.checkbox("Are you home security and privacy conscious?")
 
         if home_security_applicable:
-            st.session_state.home_security_info['home_security_applicable'] = True
+            info = st.session_state.home_security_info
+            info['home_security_applicable'] = True
 
-            home_security_comp_name = st.text_input("Name of the home security company")
-            if home_security_comp_name:
-                st.session_state.home_security_info['home_security_comp_name'] = home_security_comp_name
-
-            home_security_comp_num = st.text_input("Contact number for the home security company")
-            if home_security_comp_num:
-                st.session_state.home_security_info['home_security_comp_num'] = home_security_comp_num
-
-            arm_disarm_instructions = st.text_area(
-                "Instructions to arm and disarm the home security system",
-                placeholder="E.g. Shared with you through secure text message or shared password manager link"
+            # ─── Company Details ────────────────────────────────────
+            st.subheader("🏢 Company Details")
+            info['home_security_comp_name'] = st.text_input(
+                "Security Company Name",
+                value=info.get('home_security_comp_name', '')
             )
-            if arm_disarm_instructions:
-                st.session_state.home_security_info['arm_disarm_instructions'] = arm_disarm_instructions
-
-            security_alert_steps = st.text_area(
-                "Steps to follow if a security alert is triggered",
-                placeholder="E.g. Check monitor, call security company"
+            info['home_security_comp_num'] = st.text_input(
+                "Security Company Phone Number",
+                value=info.get('home_security_comp_num', '')
             )
-            if security_alert_steps:
-                st.session_state.home_security_info['security_alert_steps'] = security_alert_steps
 
-            indoor_cameras = st.text_area(
-                "Are there any indoor cameras or monitoring systems in place, and how are they activated?"
+            # ─── System Operation ───────────────────────────────────
+            st.subheader("⚙️ System Operation")
+            info['arm_disarm_instructions'] = st.text_area(
+                "Instructions to arm/disarm system",
+                placeholder="e.g., via app, keypad code, shared link",
+                value=info.get('arm_disarm_instructions', '')
             )
-            if indoor_cameras:
-                st.session_state.home_security_info['indoor_cameras'] = indoor_cameras
-
-            access_emergency = st.text_area(
-                "Access instructions for emergencies or lockouts, and where those instructions are stored"
+            info['security_alert_steps'] = st.text_area(
+                "Steps if a security alert is triggered",
+                placeholder="e.g., check app, contact company",
+                value=info.get('security_alert_steps', '')
             )
-            if access_emergency:
-                st.session_state.home_security_info['access_emergency'] = access_emergency
-
-            wifi_network_name = st.text_input(
-                "Where is the Wi-Fi network name and password typically stored?"
+            info['indoor_cameras'] = st.text_area(
+                "Indoor cameras/monitoring details and activation",
+                placeholder="e.g., motion sensors, smartphone access",
+                value=info.get('indoor_cameras', '')
             )
-            if wifi_network_name:
-                st.session_state.home_security_info['wifi_network_location'] = wifi_network_name
 
-            wifi_guests = st.text_input(
-                "Is there a specific Wi-Fi network guests should use? If yes, how is the password shared?"
+            # ─── Emergency Access ──────────────────────────────────
+            st.subheader("🚨 Emergency & Lockout Access")
+            info['access_emergency'] = st.text_area(
+                "Emergency access instructions & storage location",
+                placeholder="e.g., spare key in lockbox, PIN in password manager",
+                value=info.get('access_emergency', '')
             )
-            if wifi_guests:
-                st.session_state.home_security_info['wifi_guests'] = wifi_guests
 
-            landline_voip = st.text_area(
-                "Are there any home phones? If yes, how should calls be handled? Who should be contacted for any home phone issues?"
+            # ─── Network Information ───────────────────────────────
+            st.subheader("📶 Network Information")
+            info['wifi_network_location'] = st.text_input(
+                "Where is Wi-Fi network name/password stored?",
+                value=info.get('wifi_network_location', '')
             )
-            if landline_voip:
-                st.session_state.home_security_info['landline_voip'] = landline_voip
+            info['wifi_guests'] = st.text_input(
+                "Guest network details & password sharing method",
+                value=info.get('wifi_guests', '')
+            )
 
+            # ─── Phone Setup ───────────────────────────────────────
+            st.subheader("📞 Home Phone / VoIP")
+            info['landline_voip'] = st.text_area(
+                "Home phone setup & call-handling instructions",
+                placeholder="e.g., handsets, contact for issues",
+                value=info.get('landline_voip', '')
+            )
+
+            # ─── Save Button ───────────────────────────────────────
+            if st.button("💾 Save Home Security Info"):
+                st.success("✅ Home security information saved!")
         else:
             st.info("🔒 You indicated home security is not applicable.")
             st.session_state.home_security_info = {"home_security_applicable": False}
-    
-    # --- Save Button ---
-    if st.button("💾 Security-Conscious Info"):
-        st.session_state["home_security_saved"] = True
-        st.success("✅ Home Security and Privacy information saved successfully!")
-    
+
+import streamlit as st
+
+import streamlit as st
+
 def convenience_seeker():
     st.write("🧼 Quality-Oriented Household Services")
 
     # Initialize in session state
     if 'convenience_seeker_info' not in st.session_state:
         st.session_state.convenience_seeker_info = {}
+    if 'convenience_seeker_options' not in st.session_state:
+        st.session_state.convenience_seeker_options = []
 
     with st.expander("Home Quality-Oriented (if applicable)", expanded=True):
         st.markdown("##### Services You Invest In")
-        
-        options = st.multiselect(
-            "As someone who wants their home and garden to be well-maintained and is willing to invest in professional help, what services do you pay for?",
-            ["Cleaning", "Gardening/Landscape", "Pool Maintenance"]
+        services = ["Cleaning", "Gardening/Landscape", "Pool Maintenance"]
+
+        # Multi-select segmented control
+        selected_services = st.segmented_control(
+            "As someone who wants their home and garden to be well‐maintained "
+            "and is willing to invest in professional help, what services do you pay for?",
+            options=services,
+            selection_mode="multi",
+            default=st.session_state.convenience_seeker_options,
+            key="convenience_seeker_options"
         )
-        st.session_state.convenience_seeker_info['convenience_seeker_options'] = options
+        # Save selection
+        st.session_state.convenience_seeker_info['convenience_seeker_options'] = selected_services
 
         # --- Cleaning Service ---
-        if "Cleaning" in options:
+        if "Cleaning" in selected_services:
             st.subheader("🧹 Cleaning Service Info")
-            st.session_state.convenience_seeker_info['cleaning_name'] = st.text_input("Cleaning Company Name")
-            st.session_state.convenience_seeker_info['cleaning_number'] = st.text_input("Cleaning Company Phone Number")
-            st.session_state.convenience_seeker_info['cleaning_schedule'] = st.text_input("Cleaning Schedule")
-            st.session_state.convenience_seeker_info['cleaning_access'] = st.text_input("Access Method for Cleaners")
-            st.session_state.convenience_seeker_info['cleaning_finish_steps'] = st.text_area("Post-Cleaning Procedures")
-            st.session_state.convenience_seeker_info['cleaning_identity_confirmation'] = st.text_area("Cleaning Crew Identity Verification")
+            info = st.session_state.convenience_seeker_info
+
+            info['cleaning_name'] = st.text_input(
+                "Cleaning Company Name",
+                value=info.get('cleaning_name', '')
+            )
+
+            info['cleaning_number'] = st.text_input(
+                "Cleaning Company Phone Number",
+                value=info.get('cleaning_number', '')
+            )
+
+            # Cleaning Frequency
+            freq_options = ["Monthly", "Bi-Weekly", "Weekly"]
+            default_freq = info.get('cleaning_frequency', freq_options[0])
+            info['cleaning_frequency'] = st.selectbox(
+                "Cleaning Frequency",
+                options=freq_options,
+                index=freq_options.index(default_freq),
+                key="cleaning_frequency"
+            )
+
+            # Day of the Week
+            days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Not Specified"]
+            default_day = info.get('cleaning_day_of_week', days[0])
+            info['cleaning_day_of_week'] = st.selectbox(
+                "Cleaning Day of the Week",
+                options=days,
+                index=days.index(default_day),
+                key="cleaning_day_of_week"
+            )
+
+            info['cleaning_access'] = st.text_input(
+                "Access Method for Cleaners",
+                value=info.get('cleaning_access', '')
+            )
+            info['cleaning_finish_steps'] = st.text_area(
+                "Post-Cleaning Procedures",
+                value=info.get('cleaning_finish_steps', '')
+            )
+            info['cleaning_identity_confirmation'] = st.text_area(
+                "Cleaning Crew Identity Verification",
+                value=info.get('cleaning_identity_confirmation', '')
+            )
 
         # --- Gardening/Landscape Service ---
-        if "Gardening/Landscape" in options:
+        if "Gardening/Landscape" in selected_services:
             st.subheader("🌿 Gardening/Landscape Service Info")
-            st.session_state.convenience_seeker_info['gardening_name'] = st.text_input("Gardening Company Name")
-            st.session_state.convenience_seeker_info['gardening_number'] = st.text_input("Gardening Company Phone Number")
-            st.session_state.convenience_seeker_info['gardening_schedule'] = st.text_input("Gardening Schedule")
-            st.session_state.convenience_seeker_info['gardening_access'] = st.text_input("Access Method for Gardeners")
-            st.session_state.convenience_seeker_info['gardening_finish_steps'] = st.text_area("Post-Gardening Procedures")
-            st.session_state.convenience_seeker_info['gardening_identity_confirmation'] = st.text_area("Gardening Crew Identity Verification")
+            info = st.session_state.convenience_seeker_info
+
+            info['gardening_name'] = st.text_input(
+                "Gardening Company Name",
+                value=info.get('gardening_name', '')
+            )
+            info['gardening_number'] = st.text_input(
+                "Gardening Company Phone Number",
+                value=info.get('gardening_number', '')
+            )
+
+            # → New: Gardening Frequency
+            freq_options = ["Monthly", "Bi-Weekly", "Weekly"]
+            default_freq = info.get('gardening_frequency', freq_options[0])
+            frequency = st.selectbox(
+                "Gardening Frequency",
+                options=freq_options,
+                index=freq_options.index(default_freq),
+                key="gardening_frequency"
+            )
+            info['gardening_frequency'] = frequency
+
+            # → New: Day of the Week
+            days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Not Specified"]
+            default_day = info.get('gardening_day_of_week', days[0])
+            day = st.selectbox(
+                "Gardening Day of the Week",
+                options=days,
+                index=days.index(default_day),
+                key="gardening_day_of_week"
+            )
+            info['gardening_day_of_week'] = day
+
+            info['gardening_access'] = st.text_input(
+                "Access Method for Gardeners",
+                value=info.get('gardening_access', '')
+            )
+            info['gardening_finish_steps'] = st.text_area(
+                "Post-Gardening Procedures",
+                value=info.get('gardening_finish_steps', '')
+            )
+            info['gardening_identity_confirmation'] = st.text_area(
+                "Gardening Crew Identity Verification",
+                value=info.get('gardening_identity_confirmation', '')
+            )
 
         # --- Pool Maintenance Service ---
-        if "Pool Maintenance" in options:
+        if "Pool Maintenance" in selected_services:
             st.subheader("🏊 Pool Maintenance Info")
-            st.session_state.convenience_seeker_info['pool_name'] = st.text_input("Pool Maintenance Company Name")
-            st.session_state.convenience_seeker_info['pool_number'] = st.text_input("Pool Company Phone Number")
-            st.session_state.convenience_seeker_info['pool_schedule'] = st.text_input("Pool Maintenance Schedule")
-            st.session_state.convenience_seeker_info['pool_access'] = st.text_input("Access Method for Pool Techs")
-            st.session_state.convenience_seeker_info['pool_finish_steps'] = st.text_area("Post-Maintenance Procedures")
-            st.session_state.convenience_seeker_info['pool_identity_confirmation'] = st.text_area("Pool Crew Identity Verification")
-        
-        # --- Save Button ---
+            info = st.session_state.convenience_seeker_info
+
+            info['pool_name'] = st.text_input(
+                "Pool Maintenance Company Name",
+                value=info.get('pool_name', '')
+            )
+            info['pool_number'] = st.text_input(
+                "Pool Company Phone Number",
+                value=info.get('pool_number', '')
+            )
+
+            # → Seasonal Months
+            months = [
+                "January","February","March","April","May","June",
+                "July","August","September","October","November","December"
+            ]
+            default_months = info.get('pool_seasonal_months', [])
+
+            selected_months = st.segmented_control(
+                "Seasonal Months (select all that apply):",
+                options=months,
+                selection_mode="multi",
+                default=default_months,
+                key="pool_seasonal_months"
+                )
+            info['pool_seasonal_months'] = selected_months
+
+            # → Seasonal Frequency
+            freq_options = ["Monthly", "Bi-Weekly", "Weekly"]
+            default_freq = info.get('pool_seasonal_frequency', freq_options[0])
+            pool_freq = st.selectbox(
+                "Seasonal Frequency:",
+                options=freq_options,
+                index=freq_options.index(default_freq),
+                key="pool_seasonal_frequency"
+            )
+            info['pool_seasonal_frequency'] = pool_freq
+
+            # → Day of the Week
+            days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
+            default_day = info.get('pool_day_of_week', days[0])
+            pool_day = st.selectbox(
+                "Pool Maintenance Day of the Week:",
+                options=days,
+                index=days.index(default_day),
+                key="pool_day_of_week"
+            )
+            info['pool_day_of_week'] = pool_day
+
+            info['pool_access'] = st.text_input(
+                "Access Method for Pool Techs",
+                value=info.get('pool_access', '')
+            )
+            info['pool_finish_steps'] = st.text_area(
+                "Post-Maintenance Procedures",
+                value=info.get('pool_finish_steps', '')
+            )
+            info['pool_identity_confirmation'] = st.text_area(
+                "Pool Crew Identity Verification",
+                value=info.get('pool_identity_confirmation', '')
+            )
+
+    # --- Save Button ---
     if st.button("💾 Quality-Oriented Household Services Info"):
         st.session_state["convenience_seeker_saved"] = True
-        st.success("✅ Services you invest in information saved successfully!")
+        st.success("✅ Services information saved successfully!")
 
 
 def rent_own():
@@ -1722,10 +1870,12 @@ def rent_own():
     if "rent_own_info" not in st.session_state:
         st.session_state.rent_own_info = {}
 
-    housing_status = st.selectbox(
+    housing_status = st.radio(
         "Do you rent or own your home?",
-        ("Select an option", "Rent", "Own")
-    )
+        options=["Rent", "Own"],
+        index=0 if st.session_state.get("housing_status", "") == "Rent" else 1,
+        key="housing_status"
+    )   
 
     st.session_state.rent_own_info["housing_status"] = housing_status
 
@@ -1742,9 +1892,12 @@ def rent_own():
     elif housing_status == "Own":
         st.subheader("🧰 Homeowner Contacts")
 
-        homeowner_contacts_options = st.multiselect(
+        homeowner_contacts_options = st.segmented_control(
             "Which service contacts are applicable?",
-            ["Handyman/Contractor", "Electrician", "Exterminator", "Plumber", "HOA"]
+            options=["Handyman/Contractor", "Electrician", "Exterminator", "Plumber", "HOA"],
+            selection_mode="multi",
+            default=st.session_state.get("homeowner_contacts_options", []),
+            key="homeowner_contacts_options"
         )
 
         st.session_state.rent_own_info["homeowner_contacts_options"] = homeowner_contacts_options
