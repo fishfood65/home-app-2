@@ -1098,6 +1098,8 @@ def home():
 ### Level 2 - Emergency Kit Details
 
 # Define the homeowner_kit_stock function
+import streamlit as st
+
 def homeowner_kit_stock():
     kit_items = [
         "Flashlights and extra batteries",
@@ -1111,36 +1113,68 @@ def homeowner_kit_stock():
         "Local maps and contact lists"
     ]
 
-    # Initialize all session state variables to None
+    # Initialize storage keys in session_state
     for item in kit_items:
-        key = item.lower().replace(" ", "_").replace("(", "").replace(")", "") + "_storage"
-        if key not in st.session_state:
-            st.session_state[key] = None
-
-    with st.form(key='emergency_kit_form'):
-        selected_items = st.multiselect(
-            "Select all you have:",
-            kit_items
+        storage_key = (
+            item.lower()
+                .replace(" ", "_")
+                .replace("(", "")
+                .replace(")", "")
+            + "_storage"
         )
-        submit_button = st.form_submit_button(label='Submit')
+        if storage_key not in st.session_state:
+            st.session_state[storage_key] = None
 
-    if submit_button:
-        not_selected_items = [item for item in kit_items if item not in selected_items]
+    with st.form(key="emergency_kit_form"):
+        st.write("Select all you have:")
+        selected = []
 
-        if not_selected_items:
+        # Display checkboxes in rows of 4
+        for start in range(0, len(kit_items), 4):
+            chunk = kit_items[start : start + 4]
+            cols = st.columns(len(chunk))
+            for idx, item in enumerate(chunk):
+                storage_key = (
+                    item.lower()
+                        .replace(" ", "_")
+                        .replace("(", "")
+                        .replace(")", "")
+                    + "_storage"
+                )
+                # default checked if previously stored
+                default_checked = st.session_state[storage_key] is not None
+                checked = cols[idx].checkbox(
+                    item,
+                    value=default_checked,
+                    key=f"chk_{storage_key}"
+                )
+                if checked:
+                    selected.append(item)
+
+        submit = st.form_submit_button(label="Submit")
+
+    if submit:
+        not_selected = [item for item in kit_items if item not in selected]
+        if not_selected:
             st.warning("⚠️ Consider adding the following items to your emergency kit:")
-            for item in not_selected_items:
+            for item in not_selected:
                 st.write(f"- {item}")
 
-        # Update session state
+        # Update session_state based on checkboxes
         for item in kit_items:
-            key = item.lower().replace(" ", "_").replace("(", "").replace(")", "") + "_storage"
-            if item in selected_items:
-                st.session_state[key] = item
+            storage_key = (
+                item.lower()
+                    .replace(" ", "_")
+                    .replace("(", "")
+                    .replace(")", "")
+                + "_storage"
+            )
+            if item in selected:
+                st.session_state[storage_key] = item
             else:
-                st.session_state[key] = None
+                st.session_state[storage_key] = None
 
-    return selected_items
+    return selected
 
 def emergency_kit():
     st.write("Emergency Kit Status")
