@@ -118,16 +118,18 @@ def main():
     )
 
     # Progress indicators…
-    st.sidebar.markdown("## 🧭 Progress")
-    for i in range(1, 6):
-        key = f"level_{i}_completed"
-        label = f"Level {i}"
-        if st.session_state.progress.get(key):
-            st.sidebar.success(f"✅ {label}")
-        else:
-            st.sidebar.info(f"🔒 {label}")
-    bonus = st.session_state.progress.get("bonus_completed", False)
-    st.sidebar.markdown("✅ Bonus Level" if bonus else "🔒 Bonus Level")
+    st.markdown("#### 🧭 Progress")
+    completed = sum(
+        1 for i in range(1, 6)
+        if st.session_state.progress.get(f"level_{i}_completed", False)
+    )
+    total_levels = 5
+    percent_complete = int(completed / total_levels * 100)
+
+    st.progress(percent_complete)
+
+    # (Optional) show numeric fraction
+    st.write(f"{completed} of {total_levels} levels completed ({percent_complete}%)")
 
     # Enforce Level 1 lock
     if selected != "Level 1" and not st.session_state.progress.get("level_1_completed", False):
