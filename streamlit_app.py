@@ -1866,117 +1866,119 @@ def review_selected_documents():
     if st.button("Save Tweaks", key="btn_save_tweaks"):
         st.success("Tweaks saved!")
 
-
 def collect_document_details():
     selected = st.session_state.get("selected_documents", {})
     if not selected:
         st.warning("No documents selected. Go pick some first!")
         return
 
-    if "document_details" not in st.session_state:
-        st.session_state.document_details = {}
+    # Initialize storage-confirmed flag
+    if "storage_confirmed" not in st.session_state:
+        st.session_state.storage_confirmed = False
 
     st.header("🗂 Document Access & Storage Details")
 
     PHYSICAL_STORAGE_OPTIONS = [
-        "Canister",
-        "Closet",
-        "Drawer",
-        "Filing Cabinet",
-        "Handbag",
-        "Safe",
-        "Safety Deposit Box",
-        "Storage Unit",
-        "Wallet",
-        "With Attorney",
-        "Other physical location"
+        "Canister","Closet","Drawer","Filing Cabinet","Handbag","Safe",
+        "Safety Deposit Box","Storage Unit","Wallet","With Attorney", "With Financial Advisor/Accountant", "Other physical location"
     ]
     DIGITAL_STORAGE_OPTIONS = [
-        "Computer/Tablet",
-        "Phone",
-        "USB flash drive",
-        "External hard drive",
-        "Cloud storage (Google Drive, Dropbox, etc.)",
-        "Password Manager",
-        "Other digital location"
+        "Computer/Tablet","Phone","USB flash drive","External hard drive",
+        "Cloud storage (Google Drive, Dropbox, etc.)","Password Manager", "Mobile Application(s)", "Other digital location"
     ]
 
+    # --- Step 0: Pick which storage types you use ---
+    use_physical = st.checkbox("I use physical storage for my documents", key="use_physical")
+    if use_physical:
+        st.multiselect(
+            "Select all physical storage locations you use:",
+            options=PHYSICAL_STORAGE_OPTIONS,
+            default=st.session_state.get("global_physical_storage", []),
+            key="global_physical_storage"
+        )
+
+    use_digital = st.checkbox("I use digital storage for my documents", key="use_digital")
+    if use_digital:
+        st.multiselect(
+            "Select all digital storage locations you use:",
+            options=DIGITAL_STORAGE_OPTIONS,
+            default=st.session_state.get("global_digital_storage", []),
+            key="global_digital_storage"
+        )
+
+    # --- Step 0b: Confirm storage setups ---
+    if st.button("Confirm storage types & locations", key="btn_confirm_storage"):
+        errors = []
+        if use_physical and not st.session_state.get("global_physical_storage"):
+            errors.append("• select at least one physical storage location")
+        if use_digital and not st.session_state.get("global_digital_storage"):
+            errors.append("• select at least one digital storage location")
+        if errors:
+            st.error("Please:\n" + "\n".join(errors))
+        else:
+            st.session_state.storage_confirmed = True
+
+    if not st.session_state.storage_confirmed:
+        st.info("After selecting storage types & locations above, click **Confirm** to assign documents.")
+        return
+
+    # --- Step 1: Assign each document to chosen locations ---
+    if "document_details" not in st.session_state:
+        st.session_state.document_details = {}
+
+    st.markdown("### Assign each document to one or more storage locations")
+    all_assigned = True
+    missing = []
+
     for category, docs in selected.items():
-        # ← Skip any category with no selected docs
         if not docs:
             continue
 
-        st.subheader(category)
-        for doc in docs:
-            # initialize storage for this doc
-            details = st.session_state.document_details.setdefault(doc, {})
+        # Wrap the entire category in an expander
+        with st.expander(category, expanded=False):
+            for doc in docs:
+                details = st.session_state.document_details.setdefault(doc, {})
 
-            # Each document gets its own collapsible
-            with st.expander(f"{doc}", expanded=False):
-                # 1a) Physical copies
-                details["physical_storage_locations"] = st.multiselect(
-                    "1a. Where are physical copies stored?",
-                    options=PHYSICAL_STORAGE_OPTIONS,
-                    default=details.get("physical_storage_locations", []),
-                    key=f"{doc}_physical_storage"
-                )
+                # Build the options from global storage lists
+                options = []
+                if use_physical:
+                    options += st.session_state["global_physical_storage"]
+                if use_digital:
+                    options += st.session_state["global_digital_storage"]
 
-                # 1b) Digital copies
-                details["digital_storage_locations"] = st.multiselect(
-                    "1b. Where are digital copies stored? (If available)",
-                    options=DIGITAL_STORAGE_OPTIONS,
-                    default=details.get("digital_storage_locations", []),
-                    key=f"{doc}_digital_storage"
-                )
+                st.markdown(f"📄 **{doc}** — assign storage:")
 
-                # 2a) Physical access instructions
-                details["physical_access_instructions"] = st.text_area(
-                    "2a. Instructions to access physical copies in an emergency:",
-                    value=details.get("physical_access_instructions", ""),
-                    key=f"{doc}_physical_access"
-                )
+                # Horizontal checkboxes, 4 per row
+                picked = []
+                for start in range(0, len(options), 4):
+                    chunk = options[start : start + 4]
+                    cols = st.columns(len(chunk))
+                    for idx, opt in enumerate(chunk):
+                        was = details.get("assigned_storage", [])
+                        checked = cols[idx].checkbox(
+                            opt,
+                            value=(opt in was),
+                            key=f"assign_{doc}_chk_{start+idx}"
+                        )
+                        if checked:
+                            picked.append(opt)
 
-                # 2b) Digital access instructions
-                details["digital_access_instructions"] = st.text_area(
-                    "2b. Instructions to access digital copies in an emergency (If available):",
-                    value=details.get("digital_access_instructions", ""),
-                    key=f"{doc}_digital_access"
-                )
+                details["assigned_storage"] = picked
 
-                # 3a) Contact physical access
-                details["contact_physical_access"] = st.radio(
-                    "3a. Does your Emergency Contact have access to your physical copies?",
-                    options=["Yes", "No"],
-                    index=0 if details.get("contact_physical_access", "Yes") == "Yes" else 1,
-                    key=f"{doc}_contact_physical_access"
-                )
+                if not picked:
+                    all_assigned = False
+                    missing.append(doc)
 
-                # 3b) Contact digital access
-                details["contact_digital_access"] = st.radio(
-                    "3b. Does your Emergency Contact have access to your digital copies?",
-                    options=["Yes", "No"],
-                    index=0 if details.get("contact_digital_access", "Yes") == "Yes" else 1,
-                    key=f"{doc}_contact_digital_access"
-                )
+    # --- Step 2: Enforce that every document got assigned ---
+    if not all_assigned:
+        st.error("Please assign storage for all documents:")
+        st.write(", ".join(missing))
+        return
 
-                # 4a) Instructions for Contact – physical
-                details["contact_physical_instructions"] = st.text_area(
-                    "4a. Instructions for your Emergency Contact to access physical copies:",
-                    value=details.get("contact_physical_instructions", ""),
-                    key=f"{doc}_contact_physical_instructions"
-                )
-
-                # 4b) Instructions for Contact – digital
-                details["contact_digital_instructions"] = st.text_area(
-                    "4b. Instructions for your Emergency Contact to access digital copies (If available):",
-                    value=details.get("contact_digital_instructions", ""),
-                    key=f"{doc}_contact_digital_instructions"
-                )
-
-            st.markdown("---")
-
+    # --- Step 3: Final save button ---
     if st.button("Save all document details", key="btn_save_details"):
         st.success("✅ All document details saved!")
+
 
 def generate_kit_tab():
     """Renders the Generate Kit UI and uses generate_runbook_from_prompt to run the LLM and export."""
