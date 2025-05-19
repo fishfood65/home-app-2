@@ -1979,6 +1979,209 @@ def collect_document_details():
     if st.button("Save all document details", key="btn_save_details"):
         st.success("✅ All document details saved!")
 
+    # Step 4: Ask storage-location questions
+    st.header("🔍 Storage Location Details")
+
+    # PHYSICAL STORAGE
+    for storage in st.session_state.get("global_physical_storage", []):
+        # normalize key name
+        key_base = storage.lower().replace(" ", "_")
+        with st.expander(f"{storage} Details", expanded=False):
+            if storage == "Safety Deposit Box":
+                st.text_input(
+                    "Branch name & address:",
+                    key=f"{key_base}_branch_address"
+                )
+                st.text_area(
+                    "Emergency authorization required to retrieve contents:",
+                    key=f"{key_base}_authorization"
+                )
+
+            elif storage == "Safe":
+                st.text_input(
+                    "Designated safe location (building/room/area):",
+                    key=f"{key_base}_location"
+                )
+                st.text_area(
+                    "Emergency steps & credentials needed to open safe:",
+                    key=f"{key_base}_access_steps"
+                )
+
+            elif storage == "Storage Unit":
+                st.text_input(
+                    "Business name & address of unit:",
+                    key=f"{key_base}_business_address"
+                )
+                st.text_area(
+                    "Emergency authorization required for unit access:",
+                    key=f"{key_base}_authorization"
+                )
+
+            elif storage == "With Attorney":
+                st.text_area(
+                    "Emergency contact method and proof of authorization needed:",
+                    key=f"{key_base}_attorney_instructions"
+                )
+
+            elif storage == "Canister":
+                st.text_input(
+                    "Primary Canister location (building/room/cabinet/shelf):",
+                    key=f"{key_base}_location"
+                )
+                st.text_area(
+                    "Emergency steps & credentials needed to open canister:",
+                    key=f"{key_base}_access_steps"
+                )
+                st.text_area(
+                    "If secondary canisters are used , list each canister name & its location & contents:",
+                    key=f"{key_base}_contents"
+                )
+
+            elif storage == "Drawer":
+                st.text_input(
+                    "Primary Drawer location (building/room/cabinet):",
+                    key=f"{key_base}_location"
+                )
+                st.text_area(
+                    "Emergency steps & credentials needed to open drawer:",
+                    key=f"{key_base}_access_steps"
+                )
+                st.text_area(
+                    "If secondary drawers are used , list each drawer name & its location & contents:",
+                    key=f"{key_base}_contents"
+                )
+
+            elif storage == "Filing Cabinet":
+                st.text_input(
+                    "Primary Filing cabinet location (building/room/identifier):",
+                    key=f"{key_base}_location"
+                )
+                st.text_area(
+                    "Emergency steps & credentials needed to open cabinet:",
+                    key=f"{key_base}_access_steps"
+                )
+                st.text_area(
+                    "If secondary filing cabinets are used, list each cabinet name & its location & contents:",
+                    key=f"{key_base}_contents"
+                )
+
+            elif storage == "Wallet":
+                st.text_input(
+                    "Wallet location (building/room/drawer/closet/bag):",
+                    key=f"{key_base}_location"
+                )
+                st.text_area(
+                    "Emergency steps & credentials to retrieve wallet:",
+                    key=f"{key_base}_access_steps"
+                )
+                st.text_area(
+                    "If secondary wallets are used, list each & its location & contents:",
+                    key=f"{key_base}_contents"
+                )
+
+            elif storage == "Handbag":
+                st.text_input(
+                    "Primary Handbag location (building/room/drawer/closet):",
+                    key=f"{key_base}_location"
+                )
+                st.text_area(
+                    "Emergency steps & credentials to retrieve handbag:",
+                    key=f"{key_base}_access_steps"
+                )
+                st.text_area(
+                    "If secondary handbags are used, list its location & contents:",
+                    key=f"{key_base}_contents"
+                )
+
+            elif storage == "Other physical location":
+                st.text_input(
+                    "Other location description (building/room/address):",
+                    key=f"{key_base}_location"
+                )
+                st.text_area(
+                    "Emergency steps & credentials to access this location:",
+                    key=f"{key_base}_access_steps"
+                )
+                st.text_area(
+                    "If multiple, list each location & its contents:",
+                    key=f"{key_base}_contents"
+                )
+
+    # DIGITAL STORAGE
+    for storage in st.session_state.get("global_digital_storage", []):
+        key_base = storage.lower().replace(" ", "_").replace("/", "_")
+        with st.expander(f"{storage} Details", expanded=False):
+            if storage in ["Computer/Tablet", "Phone"]:
+                st.text_input(
+                    "Designated place (room/surface/storage)primary device:",
+                    key=f"{key_base}_location"
+                )
+                st.text_area(
+                    "Emergency steps & credentials to access device:",
+                    key=f"{key_base}_access_steps"
+                )
+                st.text_area(
+                    "If secondary devices exists, list each, its location and contents:",
+                    key=f"{key_base}_contents"
+                )
+
+            elif storage in ["USB flash drive", "External hard drive"]:
+                st.text_input(
+                    "Designated place (room/surface/storage) for primary device:",
+                    key=f"{key_base}_location"
+                )
+                st.text_area(
+                    "Emergency steps & credentials to access drive:",
+                    key=f"{key_base}_access_steps"
+                )
+                st.text_area(
+                    "If secondary devices exists, list each & its location and contents:",
+                    key=f"{key_base}_contents"
+                )
+
+            elif storage == "Cloud storage (Google Drive, Dropbox, etc.)":
+                st.text_input(
+                    "Primary Cloud platform name & link:",
+                    key=f"{key_base}_platform"
+                )
+                st.text_area(
+                    "Emergency steps & credentials to access account:",
+                    key=f"{key_base}_access_steps"
+                )
+                st.text_area(
+                    "If secondary platforms, list each & its link and contents:",
+                    key=f"{key_base}_contents"
+                )
+
+            elif storage == "Password Manager":
+                st.text_input(
+                    "Password manager name:",
+                    key=f"{key_base}_platform"
+                )
+                st.text_area(
+                    "Emergency steps & credentials to access vault:",
+                    key=f"{key_base}_access_steps"
+                )
+                st.text_area(
+                    "If multiple vaults, list each & its contents:",
+                    key=f"{key_base}_contents"
+                )
+
+            elif storage == "Mobile Application(s)":
+                # New Mobile Application questions
+                st.text_area(
+                    "If multiple mobile applications are used, name each and note what is stored in each:",
+                    key=f"{key_base}_apps_and_contents"
+                )
+                st.text_area(
+                    "In an emergency, what steps and credentials are required for someone else to access the mobile application accounts holding key documents?:",
+                    key=f"{key_base}_access_steps"
+                )
+
+    # Final Save
+    if st.button("Save all document & storage details", key="btn_save_all"):
+        st.success("✅ All details saved!")
+
 
 def generate_kit_tab():
     """Renders the Generate Kit UI and uses generate_runbook_from_prompt to run the LLM and export."""
