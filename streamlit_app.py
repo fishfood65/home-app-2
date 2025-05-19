@@ -54,6 +54,38 @@ else:
 
 # Main entry point of the app
 
+def download_session_state_as_csv():
+    """
+    Serializes all keys and values in st.session_state into a CSV
+    and provides a download button.
+    """
+    # 1) Build a list of records
+    records = []
+    for key, val in st.session_state.items():
+        # JSON-encode complex objects
+        try:
+            value_str = json.dumps(val, default=str)
+        except Exception:
+            value_str = str(val)
+        records.append({
+            "key": key,
+            "value": value_str
+        })
+
+    # 2) Create a DataFrame
+    df = pd.DataFrame(records)
+
+    # 3) Convert to CSV
+    csv = df.to_csv(index=False).encode("utf-8")
+
+    # 4) Offer download
+    st.download_button(
+        label="📥 Download data as CSV",
+        data=csv,
+        file_name="home_data.csv",
+        mime="text/csv"
+    )
+
 PROGRESS_FILE = "user_progress.json"
 
 def load_progress():
@@ -67,6 +99,8 @@ def save_progress(progress):
         json.dump(progress, f)
 
 def main():
+    download_session_state_as_csv()
+    
     levels = ("Level 1", "Level 2", "Level 3", "Level 4", "Level 5", "Bonus Level")
 
     # Initialize session state
