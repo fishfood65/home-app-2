@@ -605,25 +605,37 @@ Ensure the run book is clearly formatted using Markdown, with bold headers and b
 #### Emergency Kit + Utilities Prompt ####
 
 def emergency_kit_utilities_runbook_prompt(
-            city=st.session_state.get("city", ""),
-            zip_code=st.session_state.get("zip_code", ""),
-            internet_provider_name=st.session_state.get("internet_provider",""),
-            electricity_provider_name=st.session_state.get("electricity_provider",""),
-            natural_gas_provider_name=st.session_state.get("natural_gas_provider",""),
-            water_provider_name=st.session_state.get("water_provider",""),
-            emergency_kit_status=st.session_state.get("emergency_kit_status", "No"),
-            emergency_kit_location=st.session_state.get("emergency_kit_location", ""),
-            selected_items=st.session_state.get("homeowner_kit_stock", []),
-            not_selected_items=st.session_state.get("homeowner_kit_stock", []),
-            flashlights_info=st.session_state.get("flashlights_info", ""),
-            radio_info=st.session_state.get("radio_info", ""),
-            food_water_info=st.session_state.get("food_water_info", ""),
-            important_docs_info=st.session_state.get("important_docs_info", ""),
-            whistle_info=st.session_state.get("whistle_info", ""),
-            medications_info=st.session_state.get("medications_info", ""),
-            mask_info=st.session_state.get("mask_info", ""),
-            maps_contacts_info=st.session_state.get("maps_contacts_info", "")
-            ):
+    city=st.session_state.get("city", ""),
+    zip_code=st.session_state.get("zip_code", ""),
+    internet_provider_name=st.session_state.get("internet_provider",""),
+    electricity_provider_name=st.session_state.get("electricity_provider",""),
+    natural_gas_provider_name=st.session_state.get("natural_gas_provider",""),
+    water_provider_name=st.session_state.get("water_provider",""),
+    emergency_kit_status=st.session_state.get("emergency_kit_status", "No"),
+    emergency_kit_location=st.session_state.get("emergency_kit_location", ""),
+    selected_items=st.session_state.get("homeowner_kit_stock", []),
+    not_selected_items=st.session_state.get("not_selected_items", []),
+    additional_items=st.session_state.get("additional_kit_items", ""),
+    flashlights_info=st.session_state.get("flashlights_info", ""),
+    radio_info=st.session_state.get("radio_info", ""),
+    food_water_info=st.session_state.get("food_water_info", ""),
+    important_docs_info=st.session_state.get("important_docs_info", ""),
+    whistle_info=st.session_state.get("whistle_info", ""),
+    medications_info=st.session_state.get("medications_info", ""),
+    mask_info=st.session_state.get("mask_info", ""),
+    maps_contacts_info=st.session_state.get("maps_contacts_info", "")
+):
+    # Build Markdown lists for inventory & missing items
+    selected_md = "".join(f"- {item}\n" for item in selected_items)
+    missing_md  = "".join(f"- {item}\n" for item in not_selected_items)
+
+    # Parse additional items (comma-separated) into bullets
+    additional_list = [itm.strip() for itm in additional_items.split(",") if itm.strip()]
+    additional_md   = "".join(f"- {itm}\n" for itm in additional_list)
+
+    # Helper to render non-empty recommended items
+    def render_recommended(*items):
+        return "".join(f"- {i}\n" for i in items if i and i.strip())
 
     return f"""
 You are an expert assistant generating a city-specific Emergency Preparedness Run Book. First, search the internet for up-to-date local utility providers and their emergency contact information. Then, compose a comprehensive, easy-to-follow guide customized for residents of City: {city}, Zip Code: {zip_code}.
@@ -642,23 +654,20 @@ For each provider, retrieve:
 - Emergency Contact Numbers (specific to outages, leaks, service disruptions)
 - Steps to report issues
 
-For Emergency Kit Summary, if {emergency_kit_status} is Yes, then write that the emergency kit is available and where it's located using {emergency_kit_location}, if {emergency_kit_status} is No then write the Emergency kit is a work in progress and will be located using {emergency_kit_location}.
-
-Retrieve Emergency contact informtion for local:
-- Police
-- Fire Department
-- Hospital
-- Posion Control
+For Emergency Kit Summary:
+{"Kit is available at " + emergency_kit_location if emergency_kit_status == "Yes" else "Kit is a work in progress and will be located at " + emergency_kit_location}
 
 ---
 
 ### 🧰 Emergency Kit Summary
 
-**Kit Inventory:**
-{selected_items}
+**Kit Inventory:**  
+{selected_md or "_(none selected)_"}  
+⚠️ **Missing Kit Items (consider adding):**  
+{missing_md or "_(none missing)_"}  
 
-**"⚠️ Consider adding the following items to your emergency kit:"
-{not_selected_items}
+**Additional User-Added Items:**  
+{additional_md or "_(none added)_"}  
 
 ---
 
@@ -675,10 +684,7 @@ Retrieve Emergency contact informtion for local:
 - How to report
 - Safety precautions
 - **Recommended Kit Items**:
-  - {flashlights_info}
-  - {radio_info}
-  - {food_water_info}
-  - {important_docs_info}
+{render_recommended(flashlights_info, radio_info, food_water_info, important_docs_info)}
 
 ---
 
@@ -693,9 +699,7 @@ Retrieve Emergency contact informtion for local:
 - How to evacuate
 - How to report
 - **Recommended Kit Items**:
-  - {whistle_info}
-  - {important_docs_info}
-  - {flashlights_info}
+{render_recommended(whistle_info, important_docs_info, flashlights_info)}
 
 ---
 
@@ -709,10 +713,7 @@ Retrieve Emergency contact informtion for local:
 - Detection steps
 - Shutoff procedure
 - **Recommended Kit Items**:
-  - {food_water_info}
-  - {medications_info}
-  - {mask_info}
-  - {important_docs_info}
+{render_recommended(food_water_info, medications_info, mask_info, important_docs_info)}
 
 ---
 
@@ -727,14 +728,11 @@ Retrieve Emergency contact informtion for local:
 - Reporting
 - Staying informed
 - **Recommended Kit Items**:
-  - {radio_info}
-  - {maps_contacts_info}
-  - {important_docs_info}
-
----
+{render_recommended(radio_info, maps_contacts_info, important_docs_info)}
 
 Ensure the run book is clearly formatted using Markdown, with bold headers and bullet points. Use ⚠️ to highlight missing kit items.
 """.strip()
+
 
 #### Mail + Trash Prompt ####
 def mail_trash_runbook_prompt():
@@ -1206,11 +1204,10 @@ def homeowner_kit_stock():
     return selected
 
 def emergency_kit():
-
     # Use st.radio to create a dropdown menu for selecting between renting or owning
     emergency_kit_status = st.radio(
-        'Do you have an Emergency Kit?',  # Label for the widget
-        ('Yes', 'No')  # Options to display in the dropdown menu
+        'Do you have an Emergency Kit?',
+        ('Yes', 'No')
     )
 
     kit_items = [
@@ -1225,42 +1222,37 @@ def emergency_kit():
         "Local maps and contact lists"
     ]
 
+    st.write("🧰 Emergency Kit Info")
     if emergency_kit_status == 'Yes':
-        st.write("Emergency Kit Info")
-        st.success('This is a success message!', icon=":material/medical_services:")
-        st.session_state['emergency_kit_status'] = emergency_kit_status
-
-        emergency_kit_location = st.text_area("Where is the Emergency Kit located?")
-        if emergency_kit_location:
-            st.session_state['emergency_kit_location'] = emergency_kit_location
-
-        # Call the homeowner_kit_stock function and get the selected items
-        selected_items = homeowner_kit_stock()
-        if selected_items:
-            st.session_state['homeowner_kit_stock'] = selected_items
-
-        # Determine not selected items
-        not_selected_items = [item for item in kit_items if item not in selected_items]
-        st.session_state['not_selected_items'] = not_selected_items
-
+        st.success('Great—you already have a kit!', icon=":material/medical_services:")
     else:
-        st.write("Emergency Kit Info")
         st.warning("⚠️ Let's build your emergency kit with what you have.")
 
-        emergency_kit_location = st.text_area("Where do you want to put your emergency kit items?")
-        if emergency_kit_location:
-            st.session_state['emergency_kit_location'] = emergency_kit_location
+    st.session_state['emergency_kit_status'] = emergency_kit_status
 
-        # Call the homeowner_kit_stock function and get the selected items
-        selected_items = homeowner_kit_stock()
-        if selected_items:
-            st.session_state['homeowner_kit_stock'] = selected_items
+    # Kit location
+    emergency_kit_location = st.text_area("Where is (or where will) the Emergency Kit be located?")
+    if emergency_kit_location:
+        st.session_state['emergency_kit_location'] = emergency_kit_location
 
-        # Determine not selected items
-        not_selected_items = [item for item in kit_items if item not in selected_items]
-        st.session_state['not_selected_items'] = not_selected_items
+    # Core kit items selector
+    selected_items = homeowner_kit_stock()
+    if selected_items is not None:
+        st.session_state['homeowner_kit_stock'] = selected_items
 
-        st.success("📦 Emergency Kit Built!")
+    # Additional custom items
+    additional = st.text_input(
+        "Add any additional emergency kit items not in the list above (comma-separated):",
+        value=st.session_state.get('additional_kit_items', '')
+    )
+    if additional is not None:
+        # store raw string or split into list
+        st.session_state['additional_kit_items'] = additional
+
+    # Compute not selected
+    current_selection = st.session_state.get('homeowner_kit_stock', [])
+    not_selected_items = [item for item in kit_items if item not in current_selection]
+    st.session_state['not_selected_items'] = not_selected_items
 
     return not_selected_items
 
@@ -2523,10 +2515,6 @@ def generate_kit_tab():
     )
 
 ##### Bonus - Additional Instructions for Guest/House Sitters
-
-import os
-import streamlit as st
-
 def bonus_level():
     st.write("🎁 Bonus Level")
 
@@ -2648,10 +2636,11 @@ def bonus_level():
     with tab3:
         st.subheader("Emergency + Mail & Trash with Bonus")
 
-        if not st.session_state.progress["level_3_completed"]:
+        if not st.session_state.progress["level_3_completed", False]:
             st.warning("🔒 You need to complete Level 3 before generating this runbook.")
             return
-
+        
+        bonus_info = st.session_state.bonus_info
         if not any(v and str(v).strip() for v in bonus_info.values()):
             st.error("🔒 Please fill out at least one Bonus section (Tab 1) first.")
             return
@@ -2695,10 +2684,11 @@ def bonus_level():
     with tab4:
         st.subheader("Emergency + Mail, Trash & Services with Bonus")
 
-        if not st.session_state.progress["level_4_completed"]:
+        if not st.session_state.progress["level_4_completed", False]:
             st.warning("🔒 You need to complete Level 4 before generating this runbook.")
             return
 
+        bonus_info = st.session_state.bonus_info
         if not any(v and str(v).strip() for v in bonus_info.values()):
             st.error("🔒 Please fill out at least one Bonus section (Tab 1) first.")
             return
