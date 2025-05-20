@@ -1000,32 +1000,42 @@ Begin your response now.
 """.strip()
 
 def bonus_level_runbook_prompt():
-    """
-    Build an LLM prompt snippet from the Bonus Level data in session_state,
-    suitable for appending to a home caretaker emergency runbook prompt.
-    """
     bonus_info = st.session_state.get("bonus_info", {})
-    # Serialize the bonus_info dict
-    bonus_json = json.dumps(bonus_info, indent=2)
+
+    # Filter out empty entries
+    filtered_info = {
+        key: val
+        for key, val in bonus_info.items()
+        if val and str(val).strip()
+    }
+    bonus_json = json.dumps(filtered_info, indent=2)
 
     prompt = f"""
-            Append the following **Bonus Level** instructions to the home caretaker emergency runbook.  
-            Use clear headings and actionable bullet points.
+Append the following **Additional Information** to the home caretaker emergency runbook.  
+Use clear headings and actionable bullet points.  
+**Only include a section if its data appears in the JSON. Omit any heading with no data.**
 
-            Bonus Level Information (JSON):
-            {bonus_json}
+Additional Information (JSON):
+{bonus_json}
 
+Your task:
+1. **Home Maintenance**  
+   - Only if `maintenance_tasks` or `appliance_instructions` exist, under a **Home Maintenance** heading list those items.
+2. **Home Rules & Preferences**  
+   - Only if `house_rules` or `cultural_practices` exist, under a **Home Rules & Preferences** heading summarize them.
+3. **Housekeeping & Cleaning**  
+   - Only if `housekeeping_instructions` or `cleaning_preferences` exist, under a **Housekeeping & Cleaning** heading provide routines and supply locations.
+4. **Entertainment & Technology**  
+   - Only if `entertainment_info` or `device_instructions` exist, under an **Entertainment & Technology** heading describe usage and charging steps.
 
-            Your task:
-            1. Under a **Home Maintenance** heading, list the regular maintenance tasks and appliance-operating instructions.
-            2. Under a **Home Rules & Preferences** heading, summarize any house rules and cultural/religious notes for guests.
-            3. Under a **Housekeeping & Cleaning** heading, provide basic cleaning routines and where to find supplies.
-            4. Under an **Entertainment & Technology** heading, describe how to operate entertainment systems and charge devices.
+Produce **only** the formatted runbook addition, starting with:
 
-            Produce **only** the formatted runbook addition (no additional commentary).
-            """
+## Additional Information
+
+…followed by the pertinent sections (no blank headings, no extra commentary).
+""".strip()
+
     return prompt
-
 
 ###### Main Functions that comprise of the Levels
 
@@ -1389,11 +1399,6 @@ def trash_handling():
     with st.expander("Outdoor Bin Details", expanded=True):
         st.markdown("##### Outdoor Bin Handling Details")
 
-        bin_destination = st.text_area(
-            "Where to Empty the Trash Bins", 
-            placeholder="E.g. By the curb on pickup day"
-        )
-
         bin_description = st.text_area(
             "What the Outdoor Trash Bins Look Like", 
             placeholder="E.g. Green with lid"
@@ -1484,7 +1489,6 @@ def trash_handling():
             bool(kitchen_bin),
             bool(bathroom_bin),
             bool(other_room_bin),
-            bool(bin_destination),
             bool(bin_description),
             bool(bin_location_specifics),
             bool(trash_day),
@@ -1510,7 +1514,6 @@ def trash_handling():
                 "other_room_bin": other_room_bin,
             },
             "outdoor": {
-                "bin_destination": bin_destination,
                 "bin_description": bin_description,
                 "bin_location_specifics": bin_location_specifics,
                 "bin_handling_instructions": bin_handling_instructions
@@ -2515,6 +2518,7 @@ def generate_kit_tab():
     )
 
 ##### Bonus - Additional Instructions for Guest/House Sitters
+
 def bonus_level():
     st.write("🎁 Bonus Level")
 
@@ -2525,22 +2529,18 @@ def bonus_level():
     st.session_state.setdefault('prompt_mail_trash', None)
     st.session_state.setdefault('prompt_home_caretaker', None)
 
-    # Confirmation flags for each tab
-    st.session_state.setdefault('bonus_confirm_2', False)
-    st.session_state.setdefault('bonus_confirm_3', False)
-    st.session_state.setdefault('bonus_confirm_4', False)
+    # Confirmation flag for generation
+    st.session_state.setdefault('bonus_generate_confirm', False)
 
     # Ensure progress flags exist
     st.session_state.progress.setdefault("level_2_completed", False)
     st.session_state.progress.setdefault("level_3_completed", False)
     st.session_state.progress.setdefault("level_4_completed", False)
 
-    # ─── Create four tabs ────────────────────────────────────
-    tab1, tab2, tab3, tab4 = st.tabs([
+    # ─── Create two tabs ──────────────────────────────────────
+    tab1, tab2 = st.tabs([
         "1️⃣ Bonus Input",
-        "2️⃣ Emergency Prep w/Bonus",
-        "3️⃣ Emergency + Mail & Trash w/Bonus",
-        "4️⃣ Emergency + Mail, Trash & Services w/Bonus"
+        "2️⃣ Generate Runbook"
     ])
 
     # ─── Tab 1: Collect Bonus Inputs ─────────────────────────
@@ -2590,148 +2590,94 @@ def bonus_level():
         if st.button("💾 Save Bonus Info"):
             st.success("✅ Bonus level information saved!")
 
-    # ─── Tab 2: Emergency Prep w/Bonus ────────────────────────
-    with tab2:
-        st.subheader("Emergency Preparedness with Bonus")
+    # ─── Tab 2: Generate Runbook ─────────────────────────────
+        with tab2:
+            st.subheader("Select and Generate Your Runbook")
 
-        if not st.session_state.progress["level_2_completed"]:
-            st.warning("🔒 You need to complete Level 2 before generating this runbook.")
-            return
+            # 1) Must have at least one Bonus input
+            bonus_info = st.session_state.bonus_info
+            if not any(v and str(v).strip() for v in bonus_info.values()):
+                st.error("🔒 Please complete at least one Bonus section in Tab 1 before proceeding.")
+                return
 
-        # Ensure at least one Bonus input
-        bonus_info = st.session_state.bonus_info
-        if not any(v and str(v).strip() for v in bonus_info.values()):
-            st.error("🔒 Please fill out at least one Bonus section (Tab 1) first.")
-            return
+            # 2) Mission choices
+            missions = [
+                "Bonus Level Mission",
+                "Mail & Trash + Bonus Mission",
+                "Full Runbook Mission"
+            ]
+            choice = st.radio("Which runbook would you like to generate?", options=missions, key="bonus_runbook_choice")
 
-        confirmed = st.checkbox(
-            "✅ Confirm AI Prompt",
-            value=st.session_state.bonus_confirm_2,
-            key="bonus_confirm_2"
-        )
-        if confirmed:
-            st.session_state.prompt_emergency = emergency_kit_utilities_runbook_prompt()
-            st.session_state.prompt_bonus     = bonus_level_runbook_prompt()
+            # 3) Confirmation checkbox
+            confirmed = st.checkbox(
+                "✅ Confirm AI Prompt",
+                value=st.session_state.get("user_confirmation", False),
+                key="user_confirmation"
+            )
+            if not confirmed:
+                st.info("Please confirm to preview and generate your runbook.")
+                return
 
-        if not confirmed:
-            st.info("Please confirm above to preview and generate.")
-            return
+            # 4) Now that user is ready, enforce prerequisites
+            if choice == missions[0] and not st.session_state.progress["level_2_completed"]:
+                st.warning("🔒 Complete Level 2 before generating the Bonus Level runbook.")
+                return
+            if choice == missions[1] and not st.session_state.progress["level_3_completed"]:
+                st.warning("🔒 Complete Level 3 before generating the Mail & Trash + Bonus runbook.")
+                return
+            if choice == missions[2] and not st.session_state.progress["level_4_completed"]:
+                st.warning("🔒 Complete Level 4 before generating the Full runbook.")
+                return
 
-        st.markdown("#### 🆘 Emergency + Utilities Prompt")
-        st.code(st.session_state.prompt_emergency, language="markdown")
+            # 5) Build all prompts
+            st.session_state.prompt_emergency      = emergency_kit_utilities_runbook_prompt()
+            st.session_state.prompt_bonus          = bonus_level_runbook_prompt()
+            st.session_state.prompt_mail_trash     = mail_trash_runbook_prompt()
+            st.session_state.prompt_home_caretaker = home_caretaker_runbook_prompt()
 
-        st.markdown("#### 🎁 Bonus Level Prompt")
-        st.code(st.session_state.prompt_bonus, language="markdown")
+            # 6) Assemble the exact prompts, labels, and filenames
+            if choice == missions[0]:
+                prompts     = [st.session_state.prompt_emergency, st.session_state.prompt_bonus]
+                labels      = ["🆘 Emergency + Utilities Prompt", "🎁 Bonus Level Prompt"]
+                button_text = "Complete Bonus Level Mission"
+                doc_heading = "Home Emergency Runbook with Bonus Level"
+                doc_file    = "home_runbook_with_bonus.docx"
+            elif choice == missions[1]:
+                prompts     = [st.session_state.prompt_emergency, st.session_state.prompt_mail_trash, st.session_state.prompt_bonus]
+                labels      = ["🆘 Emergency + Utilities Prompt", "📫 Mail & Trash Prompt", "🎁 Bonus Level Prompt"]
+                button_text = "Complete Mail & Trash + Bonus Mission"
+                doc_heading = "Emergency + Mail & Trash Runbook with Bonus"
+                doc_file    = "runbook_mail_trash_bonus.docx"
+            else:
+                prompts     = [
+                    st.session_state.prompt_emergency,
+                    st.session_state.prompt_mail_trash,
+                    st.session_state.prompt_home_caretaker,
+                    st.session_state.prompt_bonus
+                ]
+                labels      = [
+                    "🆘 Emergency + Utilities Prompt",
+                    "📫 Mail & Trash Prompt",
+                    "💝 Home Services Prompt",
+                    "🎁 Bonus Level Prompt"
+                ]
+                button_text = "Complete Full Mission"
+                doc_heading = "Complete Emergency Runbook with Bonus and Services"
+                doc_file    = "runbook_full_mission.docx"
 
-        generate_runbook_from_prompt_split(
-            prompt_emergency=st.session_state.prompt_emergency,
-            prompt_bonus=st.session_state.prompt_bonus,
-            api_key=os.getenv("MISTRAL_TOKEN"),
-            button_text="Complete Bonus Level Mission",
-            doc_heading="Home Emergency Runbook with Bonus Level",
-            doc_filename="home_runbook_with_bonus.docx"
-        )
+            # 7) Preview selected prompts
+            for lbl, p in zip(labels, prompts):
+                st.markdown(f"#### {lbl}")
+                st.code(p, language="markdown")
 
-    # ─── Tab 3: Emergency + Mail & Trash w/Bonus ─────────────
-    with tab3:
-        st.subheader("Emergency + Mail & Trash with Bonus")
-
-        if not st.session_state.progress["level_3_completed", False]:
-            st.warning("🔒 You need to complete Level 3 before generating this runbook.")
-            return
-        
-        bonus_info = st.session_state.bonus_info
-        if not any(v and str(v).strip() for v in bonus_info.values()):
-            st.error("🔒 Please fill out at least one Bonus section (Tab 1) first.")
-            return
-
-        confirmed3 = st.checkbox(
-            "✅ Confirm AI Prompt",
-            value=st.session_state.bonus_confirm_3,
-            key="bonus_confirm_3"
-        )
-        if confirmed3:
-            st.session_state.prompt_emergency  = emergency_kit_utilities_runbook_prompt()
-            st.session_state.prompt_mail_trash = mail_trash_runbook_prompt()
-            st.session_state.prompt_bonus      = bonus_level_runbook_prompt()
-
-        if not confirmed3:
-            st.info("Please confirm above to preview and generate.")
-            return
-
-        st.markdown("#### 🆘 Emergency + Utilities Prompt")
-        st.code(st.session_state.prompt_emergency, language="markdown")
-
-        st.markdown("#### 📫 Mail & Trash Prompt")
-        st.code(st.session_state.prompt_mail_trash, language="markdown")
-
-        st.markdown("#### 🎁 Bonus Level Prompt")
-        st.code(st.session_state.prompt_bonus, language="markdown")
-
-        generate_runbook_from_multiple_prompts(
-            prompts=[
-                st.session_state.prompt_emergency,
-                st.session_state.prompt_mail_trash,
-                st.session_state.prompt_bonus
-            ],
-            api_key=os.getenv("MISTRAL_TOKEN"),
-            button_text="Complete Mail & Trash + Bonus Mission",
-            doc_heading="Emergency + Mail & Trash Runbook with Bonus",
-            doc_filename="runbook_mail_trash_bonus.docx"
-        )
-
-    # ─── Tab 4: Emergency + Mail, Trash & Services w/Bonus ────
-    with tab4:
-        st.subheader("Emergency + Mail, Trash & Services with Bonus")
-
-        if not st.session_state.progress["level_4_completed", False]:
-            st.warning("🔒 You need to complete Level 4 before generating this runbook.")
-            return
-
-        bonus_info = st.session_state.bonus_info
-        if not any(v and str(v).strip() for v in bonus_info.values()):
-            st.error("🔒 Please fill out at least one Bonus section (Tab 1) first.")
-            return
-
-        confirmed4 = st.checkbox(
-            "✅ Confirm AI Prompt",
-            value=st.session_state.bonus_confirm_4,
-            key="bonus_confirm_4"
-        )
-        if confirmed4:
-            st.session_state.prompt_emergency       = emergency_kit_utilities_runbook_prompt()
-            st.session_state.prompt_mail_trash      = mail_trash_runbook_prompt()
-            st.session_state.prompt_home_caretaker  = home_caretaker_runbook_prompt()
-            st.session_state.prompt_bonus           = bonus_level_runbook_prompt()
-
-        if not confirmed4:
-            st.info("Please confirm above to preview and generate.")
-            return
-
-        st.markdown("#### 🆘 Emergency + Utilities Prompt")
-        st.code(st.session_state.prompt_emergency, language="markdown")
-
-        st.markdown("#### 📫 Mail & Trash Prompt")
-        st.code(st.session_state.prompt_mail_trash, language="markdown")
-
-        st.markdown("#### 💝 Home Services Prompt")
-        st.code(st.session_state.prompt_home_caretaker, language="markdown")
-
-        st.markdown("#### 🎁 Bonus Level Prompt")
-        st.code(st.session_state.prompt_bonus, language="markdown")
-
-        generate_runbook_from_multiple_prompts(
-            prompts=[
-                st.session_state.prompt_emergency,
-                st.session_state.prompt_mail_trash,
-                st.session_state.prompt_home_caretaker,
-                st.session_state.prompt_bonus
-            ],
-            api_key=os.getenv("MISTRAL_TOKEN"),
-            button_text="Complete Full Mission",
-            doc_heading="Complete Emergency Runbook with Bonus and Services",
-            doc_filename="runbook_full_mission.docx"
-        )
+            # 8) Generate runbook button
+            generate_runbook_from_multiple_prompts(
+                prompts=prompts,
+                api_key=os.getenv("MISTRAL_TOKEN"),
+                button_text=button_text,
+                doc_heading=doc_heading,
+                doc_filename=doc_file
+            )
 
 ### Call App Functions
 if __name__ == "__main__":
